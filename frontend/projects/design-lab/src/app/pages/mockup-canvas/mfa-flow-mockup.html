@@ -1,0 +1,209 @@
+<section
+  class="mfa-flow"
+  data-testid="mfa-flow-mockup"
+  [attr.data-mode]="mode()"
+  [class.mfa-flow--enrollment]="mode() === 'enrollment'"
+>
+  @if (mode() === 'challenge') {
+    <div class="mfa-flow__ceremony">
+      <ol class="trust-line" aria-label="Progreso del acceso">
+        <li class="is-complete">
+          <span><sn-icon name="check" [size]="16" /></span>
+          <p><strong>Contraseña verificada</strong><small>La identidad coincide.</small></p>
+        </li>
+        <li class="is-current" aria-current="step">
+          <span>2</span>
+          <p><strong>Segundo factor</strong><small>Prueba que tienes tu dispositivo.</small></p>
+        </li>
+        <li>
+          <span>3</span>
+          <p><strong>Sesión protegida</strong><small>Se abrirá con nivel AAL2.</small></p>
+        </li>
+      </ol>
+
+      <article class="verification-card" aria-labelledby="mfa-mockup-title">
+        <div class="verification-card__status">
+          <span><sn-icon name="verified_user" [size]="18" /> Paso final</span>
+          <small>El reto caduca en 04:32</small>
+        </div>
+
+        @if (challengeMethod() === 'totp') {
+          <p class="eyebrow">Aplicación de autenticación</p>
+          <h3 id="mfa-mockup-title">Confirma que eres tú</h3>
+          <p class="verification-card__intro">
+            Escribe el código de seis dígitos que ves en tu aplicación. No lo compartas con nadie.
+          </p>
+
+          <label for="mfa-design-code">Código temporal</label>
+          <div class="code-field">
+            <input
+              id="mfa-design-code"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              placeholder="000 000"
+              aria-describedby="mfa-code-help"
+            />
+            <span aria-hidden="true">30 s</span>
+          </div>
+          <small id="mfa-code-help" class="field-help"
+            >Puedes pegar los seis dígitos de una vez.</small
+          >
+
+          <button class="ceremony-action" type="button">
+            Verificar y entrar <sn-icon name="arrow_forward" [size]="18" />
+          </button>
+          <button class="text-action" type="button" (click)="useRecoveryCode()">
+            No tengo acceso a la aplicación
+          </button>
+        } @else {
+          <p class="eyebrow">Método alternativo</p>
+          <h3 id="mfa-mockup-title">Usa un código de recuperación</h3>
+          <p class="verification-card__intro">
+            Cada código funciona una sola vez. Después de entrar podrás generar un juego nuevo.
+          </p>
+
+          <label for="mfa-design-recovery">Código de recuperación</label>
+          <input
+            class="recovery-field"
+            id="mfa-design-recovery"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="SNX-••••-••••-••••"
+          />
+          <small class="field-help">Los guiones y las mayúsculas no importan.</small>
+
+          <button class="ceremony-action" type="button">
+            Verificar y entrar <sn-icon name="arrow_forward" [size]="18" />
+          </button>
+          <button class="text-action" type="button" (click)="useAuthenticatorCode()">
+            Volver al código temporal
+          </button>
+        }
+      </article>
+
+      <aside class="assurance-note" aria-label="Controles de seguridad del reto">
+        <span class="assurance-note__seal"><sn-icon name="shield_lock" [size]="25" /></span>
+        <p class="eyebrow">Protección activa</p>
+        <h4>Este código no viaja más allá de esta comprobación.</h4>
+        <ul>
+          <li><sn-icon name="check_circle" [size]="17" /> Un solo uso durante su validez.</li>
+          <li><sn-icon name="check_circle" [size]="17" /> Máximo de intentos limitado.</li>
+          <li><sn-icon name="check_circle" [size]="17" /> Sin datos guardados en el navegador.</li>
+        </ul>
+        <p class="phishing-note">
+          El centro nunca te pedirá este código por teléfono, correo o mensajería.
+        </p>
+      </aside>
+    </div>
+  } @else {
+    <div class="enrollment-layout">
+      <aside class="enrollment-steps" aria-label="Pasos para proteger la cuenta">
+        <p class="eyebrow">Protege tu cuenta</p>
+        <h3>Aplicación de autenticación</h3>
+        <ol>
+          <li class="is-complete">
+            <span><sn-icon name="check" [size]="15" /></span>
+            <p><strong>Preparar</strong><small>Sesión reciente verificada.</small></p>
+          </li>
+          <li [class.is-current]="enrollmentStage() === 2">
+            <span>2</span>
+            <p><strong>Vincular</strong><small>Escanea el código seguro.</small></p>
+          </li>
+          <li [class.is-current]="enrollmentStage() === 3">
+            <span>3</span>
+            <p><strong>Confirmar</strong><small>Escribe un código temporal.</small></p>
+          </li>
+          <li>
+            <span>4</span>
+            <p><strong>Guardar recuperación</strong><small>Una única entrega.</small></p>
+          </li>
+        </ol>
+      </aside>
+
+      <article class="enrollment-card" aria-labelledby="enrollment-mockup-title">
+        @if (enrollmentStage() === 2) {
+          <div class="enrollment-card__heading">
+            <span class="stage-label">Paso 2 de 4</span>
+            <span class="expires-label"><sn-icon name="schedule" [size]="16" /> 09:41</span>
+          </div>
+          <h3 id="enrollment-mockup-title">Escanea desde tu aplicación</h3>
+          <p>
+            Añade una cuenta nueva y enfoca el código. La imagen se retirará al terminar esta etapa.
+          </p>
+
+          <div class="qr-stage">
+            <div class="qr-placeholder" role="img" aria-label="Muestra de código QR no escaneable">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <p>
+              <strong>Muestra no escaneable</strong><small>El QR real solo aparece una vez.</small>
+            </p>
+          </div>
+
+          <details>
+            <summary>No puedo escanear el código</summary>
+            <p>En el producto real podrás revelar una clave manual una sola vez.</p>
+          </details>
+
+          <button class="ceremony-action" type="button" (click)="continueEnrollment()">
+            Ya lo he escaneado <sn-icon name="arrow_forward" [size]="18" />
+          </button>
+        } @else {
+          <div class="enrollment-card__heading">
+            <span class="stage-label">Paso 3 de 4</span>
+            <span class="expires-label"><sn-icon name="schedule" [size]="16" /> 08:58</span>
+          </div>
+          <h3 id="enrollment-mockup-title">Comprueba la vinculación</h3>
+          <p>Escribe un código nuevo para confirmar que la aplicación quedó configurada.</p>
+
+          <label for="mfa-design-confirmation">Código temporal</label>
+          <div class="code-field">
+            <input
+              id="mfa-design-confirmation"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              placeholder="000 000"
+            />
+            <span aria-hidden="true">30 s</span>
+          </div>
+
+          <div class="recovery-preview">
+            <sn-icon name="lock" [size]="20" />
+            <p>
+              <strong>Después recibirás tus códigos de recuperación.</strong>
+              <small>No se mostrarán de nuevo; podrás descargarlos desde memoria.</small>
+            </p>
+          </div>
+
+          <button class="ceremony-action" type="button">
+            Confirmar protección <sn-icon name="arrow_forward" [size]="18" />
+          </button>
+          <button class="text-action" type="button" (click)="returnToScan()">
+            Volver a escanear
+          </button>
+        }
+      </article>
+
+      <aside class="custody-note" aria-label="Custodia del segundo factor">
+        <span><sn-icon name="encrypted" [size]="24" /></span>
+        <p class="eyebrow">Custodia segura</p>
+        <h4>La clave se cifra antes de guardarse.</h4>
+        <p>
+          El QR caduca, los códigos de recuperación se almacenan con hash y cualquier cambio queda
+          registrado sin incluir secretos.
+        </p>
+        <div>
+          <strong>Limitación conocida</strong>
+          <small>TOTP mejora el acceso, pero una passkey ofrece resistencia al phishing.</small>
+        </div>
+      </aside>
+    </div>
+  }
+</section>

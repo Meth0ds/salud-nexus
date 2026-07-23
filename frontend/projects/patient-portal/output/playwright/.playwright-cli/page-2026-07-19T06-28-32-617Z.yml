@@ -1,0 +1,66 @@
+- generic [ref=e75]:
+  - link "Saltar al contenido" [ref=e76] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e77]:
+    - banner [ref=e78]:
+      - link "Salud Nexus, ir al inicio" [ref=e79] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=e83]:
+          - strong [ref=e84]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=e95] [cursor=pointer]: LM
+    - main [active] [ref=e127]:
+      - generic [ref=e306]:
+        - link [ref=e307] [cursor=pointer]:
+          - /url: /citas
+          - generic [ref=e308]: arrow_back
+          - text: Volver a mis citas
+        - generic [ref=e311]:
+          - paragraph [ref=e312]: Reserva guiada
+          - heading "Pedir una cita" [level=1] [ref=e313]
+          - paragraph [ref=e314]: Cuatro pasos breves. La disponibilidad y confirmación son sintéticas en esta demo.
+        - paragraph [ref=e315]: "Paso 1 de 4: elige un centro."
+        - generic [ref=e316]:
+          - navigation "Pasos para pedir una cita" [ref=e317]:
+            - list [ref=e318]:
+              - listitem [ref=e319]:
+                - generic [ref=e320]: "1"
+              - listitem [ref=e321]:
+                - generic [ref=e322]: "2"
+              - listitem [ref=e323]:
+                - generic [ref=e324]: "3"
+              - listitem [ref=e325]:
+                - generic [ref=e326]: "4"
+          - generic [ref=e327]:
+            - group "¿Dónde quieres la cita?" [ref=e328]:
+              - paragraph [ref=e330]: El centro determina la cartera disponible para este perfil de demostración.
+              - generic [ref=e331]:
+                - generic [ref=e333]:
+                  - generic [ref=e334]:
+                    - text: Centro
+                    - generic [ref=e335]: "*"
+                  - combobox "Centro" [ref=e337] [cursor=pointer]:
+                    - option "Selecciona un centro"
+                    - option "Centro Atlántico" [selected]
+                    - option "Centro Ribera"
+                - generic [ref=e338]: Solo centros sintéticos
+            - button [ref=e343]:
+              - generic [ref=e344]:
+                - text: Continuar
+                - generic [ref=e345]: arrow_forward
+    - navigation "Navegación principal móvil" [ref=e284]:
+      - link "Inicio" [ref=e285] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=e286]: space_dashboard
+      - link "Citas" [ref=e289] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=e290]: calendar_month
+      - link "Medicación" [ref=e293] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=e294]: medication
+      - link "Documentos" [ref=e297] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=e298]: folder_open
+      - link "Privacidad" [ref=e301] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=e302]: shield_lock

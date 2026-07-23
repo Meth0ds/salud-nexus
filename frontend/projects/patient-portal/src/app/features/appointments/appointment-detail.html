@@ -1,0 +1,123 @@
+<div class="sn-patient-page detail-page">
+  <a class="back-link" routerLink="/citas">
+    <sn-icon name="arrow_back" [size]="18" /> Volver a mis citas
+  </a>
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Cargando el detalle"
+          description="Recuperamos la cita seleccionada de la memoria de esta demo."
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="No hay una cita seleccionada"
+          description="Vuelve a la lista y abre la cita que quieras revisar."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudo cargar la cita"
+          description="Vuelve a intentarlo desde la lista de citas."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="Detalle restringido"
+          description="El centro debe autorizar de nuevo este acceso."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        @if (state.data.appointment; as appointment) {
+          <header class="detail-header sn-reveal">
+            <div class="date-tile" aria-hidden="true">
+              <span>JUL</span><strong>23</strong><small>JUE</small>
+            </div>
+            <div>
+              <p class="sn-eyebrow">Cita confirmada</p>
+              <h1>{{ appointment.title }}</h1>
+              <p>{{ appointment.professional }} · {{ appointment.specialty }}</p>
+            </div>
+            <sn-status-chip label="Confirmada" tone="success" />
+          </header>
+
+          <div class="detail-layout sn-reveal sn-reveal--second">
+            <section class="detail-panel" aria-labelledby="appointment-information-title">
+              <div class="sn-section-heading">
+                <div>
+                  <p class="sn-eyebrow">Información de la cita</p>
+                  <h2 id="appointment-information-title">Cuándo y dónde</h2>
+                </div>
+              </div>
+              <dl>
+                <div>
+                  <span aria-hidden="true"><sn-icon name="calendar_month" [size]="22" /></span>
+                  <dt>Fecha</dt>
+                  <dd>{{ appointment.dateLabel }}</dd>
+                </div>
+                <div>
+                  <span aria-hidden="true"><sn-icon name="schedule" [size]="22" /></span>
+                  <dt>Hora</dt>
+                  <dd>{{ appointment.timeLabel }} · {{ appointment.timezone }}</dd>
+                </div>
+                <div>
+                  <span aria-hidden="true"><sn-icon name="location_on" [size]="22" /></span>
+                  <dt>Centro</dt>
+                  <dd>{{ appointment.centre }} · {{ appointment.room }}</dd>
+                </div>
+                <div>
+                  <span aria-hidden="true"><sn-icon name="person" [size]="22" /></span>
+                  <dt>Profesional</dt>
+                  <dd>{{ appointment.professional }}</dd>
+                </div>
+              </dl>
+              <div class="sn-action-row">
+                @if (appointment.status === 'scheduled' && appointment.changeAllowed) {
+                  <a matButton="filled" routerLink="/citas/gestionar">
+                    <sn-icon name="event_repeat" [size]="19" /> Gestionar cita
+                  </a>
+                }
+                <a matButton="outlined" routerLink="/citas/reservar">Pedir otra cita</a>
+              </div>
+              @if (appointment.status === 'scheduled' && !appointment.changeAllowed) {
+                <p class="change-policy-note">
+                  <sn-icon name="schedule" [size]="19" /> El periodo de cambios indicado por el
+                  centro ha finalizado.
+                </p>
+              }
+            </section>
+
+            <section class="preparation-panel" aria-labelledby="preparation-title">
+              <span class="preparation-icon" aria-hidden="true"
+                ><sn-icon name="fact_check" [size]="25"
+              /></span>
+              <p class="sn-eyebrow">Antes de acudir</p>
+              <h2 id="preparation-title">Cómo prepararte</h2>
+              <ul>
+                @for (instruction of appointment.preparation; track instruction) {
+                  <li>
+                    <sn-icon name="check_circle" [size]="19" /> <span>{{ instruction }}</span>
+                  </li>
+                }
+              </ul>
+              <aside>
+                Las indicaciones son sintéticas. Si algo no coincide, confirma la información con tu
+                centro.
+              </aside>
+            </section>
+          </div>
+        }
+      }
+    }
+  }
+</div>

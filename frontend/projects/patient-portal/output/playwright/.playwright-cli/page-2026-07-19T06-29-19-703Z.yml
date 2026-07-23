@@ -1,0 +1,48 @@
+- generic [ref=e75]:
+  - link "Saltar al contenido" [ref=e76] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e77]:
+    - banner [ref=e78]:
+      - link "Salud Nexus, ir al inicio" [ref=e79] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=e83]:
+          - strong [ref=e84]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=e95] [cursor=pointer]: LM
+    - main [ref=e127]:
+      - generic [ref=e306]:
+        - link [ref=e307] [cursor=pointer]:
+          - /url: /citas
+          - generic [ref=e308]: arrow_back
+          - text: Volver a mis citas
+        - generic [ref=e311]:
+          - paragraph [ref=e312]: Reserva guiada
+          - heading "Pedir una cita" [level=1] [ref=e313]
+          - paragraph [ref=e314]: Cuatro pasos breves. La disponibilidad y confirmación son sintéticas en esta demo.
+        - paragraph [ref=e315]: Cita confirmada en la demostración.
+        - status [ref=e421]:
+          - generic [ref=e422]: event_available
+          - paragraph [ref=e425]: Reserva sintética completada
+          - heading "Cita confirmada en la demo" [level=2] [ref=e426]
+          - paragraph [ref=e427]: Miércoles, 29 de julio de 2026 · 11:30–12:00 Dra. Elena Robles · Centro Atlántico
+          - generic [ref=e428]:
+            - generic [ref=e429]: info
+            - text: No se ha contactado con ningún centro ni se ha creado una cita real.
+          - link "Volver a mis citas" [ref=e431] [cursor=pointer]:
+            - /url: /citas
+    - navigation "Navegación principal móvil" [ref=e284]:
+      - link "Inicio" [ref=e285] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=e286]: space_dashboard
+      - link "Citas" [ref=e289] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=e290]: calendar_month
+      - link "Medicación" [ref=e293] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=e294]: medication
+      - link "Documentos" [ref=e297] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=e298]: folder_open
+      - link "Privacidad" [ref=e301] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=e302]: shield_lock

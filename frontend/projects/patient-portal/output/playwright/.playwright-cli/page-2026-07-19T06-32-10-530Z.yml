@@ -1,0 +1,66 @@
+- generic [ref=f2e59]:
+  - link "Saltar al contenido" [ref=f2e60] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e61]:
+    - banner [ref=f2e62]:
+      - link "Salud Nexus, ir al inicio" [ref=f2e63] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e67]:
+          - strong [ref=f2e68]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=f2e70] [cursor=pointer]: LM
+    - main [ref=f2e72]:
+      - generic [ref=f2e251]:
+        - link [ref=f2e252] [cursor=pointer]:
+          - /url: /citas
+          - generic [ref=f2e253]: arrow_back
+          - text: Volver a mis citas
+        - generic [ref=f2e256]:
+          - paragraph [ref=f2e257]: Reserva guiada
+          - heading "Pedir una cita" [level=1] [ref=f2e258]
+          - paragraph [ref=f2e259]: Cuatro pasos breves. La disponibilidad y confirmación son sintéticas en esta demo.
+        - paragraph [ref=f2e260]: "Paso 2 de 4: Profesional."
+        - generic [ref=f2e261]:
+          - navigation "Pasos para pedir una cita" [ref=f2e262]:
+            - list [ref=f2e263]:
+              - listitem [ref=f2e264]:
+                - generic [ref=f2e265]: check
+              - listitem [ref=f2e266]:
+                - generic [ref=f2e267]: "2"
+              - listitem [ref=f2e268]:
+                - generic [ref=f2e269]: "3"
+              - listitem [ref=f2e270]:
+                - generic [ref=f2e271]: "4"
+          - generic [ref=f2e272]:
+            - group "Elige profesional o servicio" [ref=f2e296]:
+              - paragraph [ref=f2e298]: Esta lista no representa disponibilidad ni profesionales reales.
+              - generic [ref=f2e301]:
+                - generic [ref=f2e302]:
+                  - text: Profesional
+                  - generic [ref=f2e303]: "*"
+                - combobox "Profesional" [ref=f2e305] [cursor=pointer]:
+                  - option "Selecciona un profesional" [selected]
+                  - option "Dra. Elena Robles · Medicina interna"
+                  - option "Dr. Marcos Vega · Medicina de familia"
+            - generic [ref=f2e287]:
+              - button "Atrás" [ref=f2e307]
+              - button "Continuar" [disabled]:
+                - generic:
+                  - text: Continuar
+                  - generic: arrow_forward
+    - navigation "Navegación principal móvil" [ref=f2e229]:
+      - link "Inicio" [ref=f2e230] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e231]: space_dashboard
+      - link "Citas" [ref=f2e234] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=f2e235]: calendar_month
+      - link "Medicación" [ref=f2e238] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=f2e239]: medication
+      - link "Documentos" [ref=f2e242] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=f2e243]: folder_open
+      - link "Privacidad" [ref=f2e246] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=f2e247]: shield_lock

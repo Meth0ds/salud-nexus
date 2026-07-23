@@ -1,0 +1,181 @@
+@use 'sass:map';
+
+$colors: (
+  'atlantic-950': #062b34,
+  'atlantic-900': #083a44,
+  'atlantic-800': #084d58,
+  'atlantic-700': #00616c,
+  'atlantic-600': #087783,
+  'atlantic-500': #198d97,
+  'atlantic-200': #a8d9dc,
+  'atlantic-100': #d6edef,
+  'atlantic-50': #eff8f8,
+  'ocean-700': #155a7d,
+  'coral-700': #9e293c,
+  'canvas': #f4f9f9,
+  'surface': #ffffff,
+);
+
+$spacing: (
+  0: 0,
+  1: 0.25rem,
+  2: 0.5rem,
+  3: 0.75rem,
+  4: 1rem,
+  5: 1.25rem,
+  6: 1.5rem,
+  8: 2rem,
+  10: 2.5rem,
+  12: 3rem,
+  16: 4rem,
+);
+
+@function color($name) {
+  @return map.get($colors, $name);
+}
+
+@function space($step) {
+  @return map.get($spacing, $step);
+}
+
+@mixin product-tokens {
+  // Atlantic clinical palette. Names describe UI intent, not implementation shades.
+  --sn-color-canvas: #{color('canvas')};
+  --sn-color-surface: #{color('surface')};
+  --sn-color-surface-subtle: #{color('atlantic-50')};
+  --sn-color-surface-emphasis: #{color('atlantic-100')};
+  --sn-color-text-strong: #{color('atlantic-950')};
+  --sn-color-text: #0a3039;
+  --sn-color-text-muted: #3b5961;
+  --sn-color-text-disabled: #697f85;
+  --sn-color-primary: #{color('atlantic-700')};
+  --sn-color-primary-hover: #{color('atlantic-800')};
+  --sn-color-primary-pressed: #{color('atlantic-900')};
+  --sn-color-on-primary: #ffffff;
+  --sn-color-accent: #{color('ocean-700')};
+  --sn-color-border: #a9c1c5;
+  --sn-color-border-subtle: #c9dadd;
+  --sn-color-focus: #005f89;
+  --sn-color-selection: #b9e7ea;
+
+  --sn-color-status-neutral-surface: #edf2f3;
+  --sn-color-status-neutral-border: #b8c8cc;
+  --sn-color-status-neutral-text: #334f57;
+  --sn-color-status-success-surface: #e1f5e9;
+  --sn-color-status-success-border: #87c7a2;
+  --sn-color-status-success-text: #145b38;
+  --sn-color-status-info-surface: #e2f2fa;
+  --sn-color-status-info-border: #8fc2dc;
+  --sn-color-status-info-text: #134f73;
+  --sn-color-status-warning-surface: #fff2cc;
+  --sn-color-status-warning-border: #d8b75e;
+  --sn-color-status-warning-text: #654600;
+  --sn-color-status-danger-surface: #fde8eb;
+  --sn-color-status-danger-border: #dfa0aa;
+  --sn-color-status-danger-text: #842333;
+  --sn-color-status-pending-surface: #eeeafd;
+  --sn-color-status-pending-border: #b7a9df;
+  --sn-color-status-pending-text: #544184;
+
+  --sn-font-display: 'Manrope Variable', 'Manrope', Arial, sans-serif;
+  --sn-font-body: 'Source Sans 3 Variable', 'Source Sans 3', Arial, sans-serif;
+  --sn-font-data: 'Manrope Variable', 'Manrope', Arial, sans-serif;
+  --sn-type-label: 0.8125rem;
+  --sn-type-body-sm: 0.9375rem;
+  --sn-type-body: 1rem;
+  --sn-type-body-lg: 1.125rem;
+  --sn-type-heading-sm: 1.125rem;
+  --sn-type-heading-md: clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem);
+  --sn-type-heading-lg: clamp(1.75rem, 1.35rem + 1.5vw, 2.5rem);
+  --sn-type-display-sm: clamp(1.75rem, 1.35rem + 1.5vw, 2.5rem);
+  --sn-type-display-lg: clamp(2.25rem, 1.6rem + 2.5vw, 4rem);
+
+  --sn-space-0: #{space(0)};
+  --sn-space-1: #{space(1)};
+  --sn-space-2: #{space(2)};
+  --sn-space-3: #{space(3)};
+  --sn-space-4: #{space(4)};
+  --sn-space-5: #{space(5)};
+  --sn-space-6: #{space(6)};
+  --sn-space-8: #{space(8)};
+  --sn-space-10: #{space(10)};
+  --sn-space-12: #{space(12)};
+  --sn-space-16: #{space(16)};
+
+  --sn-radius-sm: 0.375rem;
+  --sn-radius-md: 0.625rem;
+  --sn-radius-lg: 1rem;
+  --sn-radius-xl: 1.5rem;
+  --sn-radius-pill: 999px;
+
+  --sn-elevation-0: none;
+  --sn-elevation-1: 0 1px 2px rgb(5 45 54 / 8%), 0 4px 12px rgb(5 45 54 / 4%);
+  --sn-elevation-2: 0 2px 5px rgb(5 45 54 / 9%), 0 12px 28px rgb(5 45 54 / 8%);
+  --sn-elevation-3: 0 6px 12px rgb(5 45 54 / 10%), 0 24px 48px rgb(5 45 54 / 12%);
+
+  --sn-motion-duration-instant: 80ms;
+  --sn-motion-duration-fast: 140ms;
+  --sn-motion-duration-moderate: 220ms;
+  --sn-motion-duration-slow: 360ms;
+  --sn-motion-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --sn-motion-ease-enter: cubic-bezier(0, 0, 0, 1);
+  --sn-motion-ease-exit: cubic-bezier(0.3, 0, 1, 1);
+
+  --sn-layout-content-max: 90rem;
+  --sn-layout-reading-max: 45rem;
+  --sn-focus-ring: 0 0 0 3px rgb(0 95 137 / 35%);
+}
+
+@mixin foundation {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-inline-size: 20rem;
+    background: var(--sn-color-canvas);
+    color: var(--sn-color-text);
+    font-family: var(--sn-font-body);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    margin: 0;
+    background: var(--sn-color-canvas);
+  }
+
+  ::selection {
+    background: var(--sn-color-selection);
+    color: var(--sn-color-text-strong);
+  }
+
+  :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid var(--sn-color-focus);
+    outline-offset: 3px;
+    scroll-margin-block: 5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :root,
+    .sn-theme {
+      --sn-motion-duration-instant: 1ms;
+      --sn-motion-duration-fast: 1ms;
+      --sn-motion-duration-moderate: 1ms;
+      --sn-motion-duration-slow: 1ms;
+    }
+
+    html:focus-within {
+      scroll-behavior: auto;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where(a, button, input, select, textarea, [tabindex]):focus-visible {
+      outline-color: Highlight;
+      box-shadow: none;
+    }
+  }
+}

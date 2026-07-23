@@ -1,0 +1,2412 @@
+{
+  "openapi": "3.1.1",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "Salud Nexus · API del centro sanitario",
+    "summary": "Contrato HTTP del portal seguro de un único centro sanitario.",
+    "description": "API REST versionada para el portal de pacientes de una instalación de Salud Nexus. El despliegue representa un solo centro; los identificadores internos de organización y centro se conservan únicamente para aislamiento, integridad referencial y auditoría. Los datos clínicos requieren una sesión de navegador Laravel Sanctum y todas las mutaciones están protegidas mediante CSRF. Los errores siguen RFC 9457 y nunca incluyen detalles clínicos o internos.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Equipo de plataforma Salud Nexus",
+      "email": "platform@salud-nexus.example"
+    },
+    "license": {
+      "name": "Propietario — uso interno autorizado",
+      "identifier": "LicenseRef-Proprietary"
+    }
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "API v1 en el mismo origen que los portales Angular"
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "Plataforma",
+      "description": "Descubrimiento del contrato y estado operativo sin datos clínicos."
+    },
+    {
+      "name": "Identidad",
+      "description": "Sesión de navegador de primera parte, autenticación y protección CSRF."
+    },
+    {
+      "name": "Paciente",
+      "description": "Vista mínima del paciente autenticado en el centro único."
+    },
+    {
+      "name": "Citas",
+      "description": "Consulta y reserva idempotente de citas del paciente."
+    },
+    {
+      "name": "Medicación",
+      "description": "Medicación del paciente, declaraciones y solicitudes de renovación."
+    },
+    {
+      "name": "Documentos",
+      "description": "Documentos publicados y descargas PDF efímeras, íntegras y de un solo uso."
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "summary": "Descubrir la API v1",
+        "description": "Devuelve metadatos no sensibles que permiten comprobar la versión desplegada.",
+        "operationId": "getApiIndex",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API disponible.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiIndexEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/csrf": {
+      "get": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Inicializar la protección CSRF",
+        "description": "Emite o renueva la cookie XSRF-TOKEN antes de una mutación de sesión. La cookie debe devolverse mediante el encabezado X-XSRF-TOKEN; su valor no se almacena en JavaScript por la aplicación.",
+        "operationId": "issueCsrfCookie",
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "Cookie CSRF emitida; no hay cuerpo de respuesta.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Iniciar una sesión de paciente",
+        "description": "Valida credenciales, rota el identificador de sesión y establece una sesión Laravel Sanctum de primera parte. Las respuestas de credenciales inválidas son deliberadamente neutras.",
+        "operationId": "loginWithPassword",
+        "security": [
+          {
+            "xsrfHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordLoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Sesión autenticada; no hay cuerpo de respuesta.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Cerrar la sesión actual",
+        "description": "Invalida la sesión de navegador, rota el token CSRF y limpia el contexto autenticado.",
+        "operationId": "logoutCurrentSession",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Sesión cerrada; no hay cuerpo de respuesta.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/session": {
+      "get": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Consultar la sesión actual",
+        "description": "Devuelve únicamente la identidad mínima, el nivel de autenticación y las capacidades de la sesión.",
+        "operationId": "getCurrentSession",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesión autenticada vigente.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "summary": "Comprobar vida del proceso",
+        "description": "Sonda local que no depende de servicios externos ni expone datos del sistema.",
+        "operationId": "getLiveness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "El proceso está vivo.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LivenessEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "Plataforma"
+        ],
+        "summary": "Comprobar disponibilidad del servicio",
+        "description": "Comprueba que las dependencias imprescindibles están disponibles. Un fallo se comunica como Problem Details 503 sin revelar la excepción subyacente.",
+        "operationId": "getReadiness",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "El servicio puede recibir tráfico.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/profile": {
+      "get": {
+        "tags": [
+          "Paciente"
+        ],
+        "summary": "Consultar el perfil del paciente",
+        "description": "Devuelve la vista mínima del paciente vinculado a la identidad autenticada y el centro único del despliegue.",
+        "operationId": "getPatientProfile",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Perfil del paciente.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientProfileEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/dashboard": {
+      "get": {
+        "tags": [
+          "Paciente"
+        ],
+        "summary": "Consultar el resumen del paciente",
+        "description": "Devuelve contadores y la siguiente cita; no agrega información de otros pacientes ni centros.",
+        "operationId": "getPatientDashboard",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resumen operativo del paciente.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PatientDashboardEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/booking-options": {
+      "get": {
+        "tags": [
+          "Citas"
+        ],
+        "summary": "Consultar opciones de reserva",
+        "description": "Lista prestaciones y huecos reservables del centro único. No existe selector de centro.",
+        "operationId": "getPatientBookingOptions",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipos de cita y huecos disponibles.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingOptionsEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/appointments": {
+      "get": {
+        "tags": [
+          "Citas"
+        ],
+        "summary": "Listar citas del paciente",
+        "description": "Lista paginada y acotada a la identidad, paciente, organización interna y centro del despliegue.",
+        "operationId": "listPatientAppointments",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AppointmentScope"
+          },
+          {
+            "$ref": "#/components/parameters/Page"
+          },
+          {
+            "$ref": "#/components/parameters/PerPage"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de citas.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentListEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Citas"
+        ],
+        "summary": "Reservar una cita",
+        "description": "Reserva atómicamente un hueco abierto. Repetir exactamente la misma solicitud con la misma clave devuelve el resultado original; reutilizar la clave con otro contenido produce un conflicto.",
+        "operationId": "bookPatientAppointment",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BookAppointmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Cita creada o respuesta idempotente reproducida.",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/AppointmentEtag"
+              },
+              "Idempotency-Replayed": {
+                "$ref": "#/components/headers/IdempotencyReplayed"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/appointments/{appointment}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AppointmentId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Citas"
+        ],
+        "summary": "Consultar una cita",
+        "description": "Devuelve una cita únicamente si pertenece al paciente autenticado. Los identificadores inexistentes y ajenos reciben la misma respuesta 404.",
+        "operationId": "getPatientAppointment",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la cita.",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/AppointmentEtag"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/appointments/{appointment}/cancellations": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AppointmentId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Citas"
+        ],
+        "summary": "Cancelar una cita",
+        "description": "Cancela atómicamente una cita futura propia, libera su asignación activa y conserva un historial inmutable. La política temporal, la versión y la idempotencia se validan en backend.",
+        "operationId": "cancelPatientAppointment",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/AppointmentIfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelAppointmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cita cancelada o respuesta idempotente reproducida.",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/AppointmentEtag"
+              },
+              "Idempotency-Replayed": {
+                "$ref": "#/components/headers/IdempotencyReplayed"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/appointments/{appointment}/reschedules": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/AppointmentId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Citas"
+        ],
+        "summary": "Reprogramar una cita",
+        "description": "Mueve la asignación activa a un hueco abierto del mismo tipo, modalidad y centro. Un conflicto o fallo conserva íntegramente la reserva original.",
+        "operationId": "reschedulePatientAppointment",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          },
+          {
+            "$ref": "#/components/parameters/AppointmentIfMatch"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RescheduleAppointmentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cita reprogramada o respuesta idempotente reproducida.",
+            "headers": {
+              "ETag": {
+                "$ref": "#/components/headers/AppointmentEtag"
+              },
+              "Idempotency-Replayed": {
+                "$ref": "#/components/headers/IdempotencyReplayed"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppointmentEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/medications": {
+      "get": {
+        "tags": [
+          "Medicación"
+        ],
+        "summary": "Listar la medicación del paciente",
+        "description": "Devuelve registros profesionales y declaraciones del propio paciente, con elegibilidad calculada para renovación.",
+        "operationId": "listPatientMedications",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de medicación.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationListEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/medications/declarations": {
+      "post": {
+        "tags": [
+          "Medicación"
+        ],
+        "summary": "Declarar medicación tomada por el paciente",
+        "description": "Crea una declaración diferenciada de un registro profesional. No habilita renovación clínica y rechaza campos desconocidos.",
+        "operationId": "declarePatientMedication",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeclareMedicationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Declaración creada o respuesta idempotente reproducida.",
+            "headers": {
+              "Idempotency-Replayed": {
+                "$ref": "#/components/headers/IdempotencyReplayed"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/medications/{medication}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/MedicationId"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Medicación"
+        ],
+        "summary": "Consultar un medicamento",
+        "description": "Devuelve el medicamento solo si pertenece al paciente autenticado; la respuesta 404 no permite enumerar recursos ajenos.",
+        "operationId": "getPatientMedication",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de medicación.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/medications/{medication}/renewal-requests": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/MedicationId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Medicación"
+        ],
+        "summary": "Solicitar la renovación de medicación",
+        "description": "Solicita revisión de un registro profesional activo. No renueva automáticamente y no admite campos en el cuerpo.",
+        "operationId": "requestPatientMedicationRenewal",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Solicitud creada o respuesta idempotente reproducida.",
+            "headers": {
+              "Idempotency-Replayed": {
+                "$ref": "#/components/headers/IdempotencyReplayed"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicationRenewalEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/documents": {
+      "get": {
+        "tags": [
+          "Documentos"
+        ],
+        "summary": "Listar documentos publicados",
+        "description": "Lista únicamente versiones publicadas y vigentes para el paciente del centro único. La integridad del fichero privado se comprueba antes de autorizar una descarga.",
+        "operationId": "listPatientDocuments",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de documentos publicados.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/documents/{document}/download-authorizations": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/DocumentId"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Documentos"
+        ],
+        "summary": "Autorizar una descarga documental",
+        "description": "Comprueba publicación, pertenencia e integridad y entrega una URL relativa con un token aleatorio de 256 bits. El servidor conserva solo su hash y el permiso caduca en 90 segundos.",
+        "operationId": "authorizePatientDocumentDownload",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyObject"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Autorización efímera creada.",
+            "headers": {
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDownloadAuthorizationEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/patient/document-downloads/{token}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/DocumentDownloadToken"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Documentos"
+        ],
+        "summary": "Consumir una descarga documental",
+        "description": "Consume una sola vez la autorización vinculada a sesión, identidad, paciente, documento y versión. Revalida publicación, tamaño, MIME, firma PDF y SHA-256 antes de entregar el contenido sin caché.",
+        "operationId": "downloadPatientDocument",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documento PDF íntegro como adjunto.",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Content-Disposition": {
+                "$ref": "#/components/headers/AttachmentDisposition"
+              },
+              "Content-Length": {
+                "$ref": "#/components/headers/DocumentContentLength"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Content-Type-Options": {
+                "$ref": "#/components/headers/NoSniff"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "contentMediaType": "application/pdf"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "laravel_session",
+        "description": "Cookie HttpOnly, Secure y SameSite emitida por Laravel Sanctum para una sesión de navegador de primera parte."
+      },
+      "xsrfHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-XSRF-TOKEN",
+        "description": "Valor URL-decodificado de la cookie XSRF-TOKEN. Es obligatorio para mutaciones y no sustituye a la sesión."
+      }
+    },
+    "parameters": {
+      "AppointmentId": {
+        "name": "appointment",
+        "in": "path",
+        "required": true,
+        "description": "Identificador público UUIDv7 de la cita.",
+        "schema": {
+          "$ref": "#/components/schemas/UuidV7"
+        }
+      },
+      "DocumentId": {
+        "name": "document",
+        "in": "path",
+        "required": true,
+        "description": "Identificador público UUIDv7 del documento.",
+        "schema": {
+          "$ref": "#/components/schemas/UuidV7"
+        }
+      },
+      "MedicationId": {
+        "name": "medication",
+        "in": "path",
+        "required": true,
+        "description": "Identificador público UUIDv7 del medicamento.",
+        "schema": {
+          "$ref": "#/components/schemas/UuidV7"
+        }
+      },
+      "DocumentDownloadToken": {
+        "name": "token",
+        "in": "path",
+        "required": true,
+        "description": "Token Base64 URL-safe sin relleno, aleatorio, efímero y de un solo uso.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{43}$",
+          "minLength": 43,
+          "maxLength": 43
+        }
+      },
+      "AppointmentScope": {
+        "name": "scope",
+        "in": "query",
+        "required": false,
+        "description": "Ventana temporal; por defecto upcoming.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "upcoming",
+            "past",
+            "all"
+          ],
+          "default": "upcoming"
+        }
+      },
+      "Page": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "description": "Página, comenzando en uno.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "PerPage": {
+        "name": "per_page",
+        "in": "query",
+        "required": false,
+        "description": "Número máximo de citas por página.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 20
+        }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "Clave opaca de 16 a 128 caracteres ASCII visibles. Debe reutilizarse solo para reintentar exactamente la misma operación.",
+        "schema": {
+          "type": "string",
+          "pattern": "^[!-~]{16,128}$",
+          "minLength": 16,
+          "maxLength": 128
+        }
+      },
+      "AppointmentIfMatch": {
+        "name": "If-Match",
+        "in": "header",
+        "required": true,
+        "description": "ETag fuerte y único recibido al consultar la representación de la cita. Las versiones obsoletas producen conflicto sin modificar la reserva.",
+        "schema": {
+          "type": "string",
+          "pattern": "^\"v[1-9][0-9]{0,9}\"$",
+          "minLength": 4,
+          "maxLength": 13
+        }
+      }
+    },
+    "headers": {
+      "XRequestId": {
+        "description": "Identificador de correlación validado o generado por el servidor.",
+        "schema": {
+          "$ref": "#/components/schemas/RequestId"
+        }
+      },
+      "SetCookie": {
+        "description": "Cookies de sesión o CSRF con atributos defensivos apropiados al entorno.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "IdempotencyReplayed": {
+        "description": "Indica si la respuesta procede de una solicitud idempotente anterior.",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "true",
+            "false"
+          ]
+        }
+      },
+      "AppointmentEtag": {
+        "description": "Validador fuerte y opaco de la versión actual de la cita.",
+        "schema": {
+          "type": "string",
+          "pattern": "^\"v[1-9][0-9]{0,9}\"$",
+          "minLength": 4,
+          "maxLength": 13
+        }
+      },
+      "NoStoreCacheControl": {
+        "description": "Impide almacenar contenido clínico en cachés compartidas o privadas.",
+        "schema": {
+          "type": "string",
+          "const": "no-store, private"
+        }
+      },
+      "AttachmentDisposition": {
+        "description": "Fuerza la descarga con un nombre genérico que no contiene datos clínicos.",
+        "schema": {
+          "type": "string",
+          "pattern": "^attachment;"
+        }
+      },
+      "DocumentContentLength": {
+        "description": "Tamaño exacto del PDF verificado, limitado a 10 MiB.",
+        "schema": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 10485760
+        }
+      },
+      "NoCachePragma": {
+        "description": "Compatibilidad defensiva con clientes HTTP antiguos.",
+        "schema": {
+          "type": "string",
+          "const": "no-cache"
+        }
+      },
+      "NoSniff": {
+        "description": "Desactiva la inferencia del tipo de contenido.",
+        "schema": {
+          "type": "string",
+          "const": "nosniff"
+        }
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Error RFC 9457 neutral y correlacionable. El estado concreto depende del rechazo (400, 401, 403, 404, 405, 409, 413, 415, 419, 422, 429, 500 o 503).",
+        "headers": {
+          "Retry-After": {
+            "description": "Segundos hasta un reintento cuando el servidor aplica limitación de tasa.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "X-Request-ID": {
+            "$ref": "#/components/headers/XRequestId"
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Uuid": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "UuidV7": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+      },
+      "RequestId": {
+        "$ref": "#/components/schemas/Uuid"
+      },
+      "Date": {
+        "type": "string",
+        "format": "date"
+      },
+      "DateTime": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "EmptyObject": {
+        "type": "object",
+        "additionalProperties": false,
+        "maxProperties": 0
+      },
+      "RequestMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "request_id"
+        ],
+        "properties": {
+          "request_id": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        }
+      },
+      "GeneratedMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "generated_at",
+          "request_id"
+        ],
+        "properties": {
+          "generated_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        }
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "page",
+          "per_page",
+          "total",
+          "last_page",
+          "request_id"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "per_page": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "last_page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        }
+      },
+      "Problem": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "request_id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://salud-nexus\\.example/problems/[a-z0-9-]+$"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "instance": {
+            "type": "string",
+            "pattern": "^/api/v1(?:/.*)?$"
+          },
+          "request_id": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            }
+          }
+        }
+      },
+      "ApiIndexEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "version",
+              "status"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "string",
+                "const": "v1"
+              },
+              "status": {
+                "type": "string",
+                "const": "available"
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "HealthChecks": {
+        "type": "object",
+        "minProperties": 1,
+        "additionalProperties": {
+          "type": "string",
+          "const": "ok"
+        }
+      },
+      "LivenessEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "checks"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "const": "alive"
+              },
+              "checks": {
+                "$ref": "#/components/schemas/HealthChecks"
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "ReadinessEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "checks"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "const": "ready"
+              },
+              "checks": {
+                "$ref": "#/components/schemas/HealthChecks"
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "PasswordLoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "email",
+          "password"
+        ],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "writeOnly": true
+          }
+        }
+      },
+      "SessionEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "authenticated",
+              "identity",
+              "authentication",
+              "capabilities"
+            ],
+            "properties": {
+              "authenticated": {
+                "type": "boolean",
+                "const": true
+              },
+              "identity": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "display_name"
+                ],
+                "properties": {
+                  "id": {
+                    "$ref": "#/components/schemas/UuidV7"
+                  },
+                  "display_name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 160
+                  }
+                }
+              },
+              "authentication": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "method",
+                  "level",
+                  "authenticated_at"
+                ],
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "const": "password"
+                  },
+                  "level": {
+                    "type": "string",
+                    "const": "aal1"
+                  },
+                  "authenticated_at": {
+                    "$ref": "#/components/schemas/DateTime"
+                  }
+                }
+              },
+              "capabilities": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "session:read",
+                    "session:logout"
+                  ]
+                },
+                "minItems": 2,
+                "uniqueItems": true
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "OrganizationIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Clave interna de aislamiento; no representa una red seleccionable por el usuario.",
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      },
+      "CenterIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      },
+      "Center": {
+        "type": "object",
+        "additionalProperties": false,
+        "description": "Centro único configurado para este despliegue.",
+        "required": [
+          "id",
+          "name",
+          "timezone"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          }
+        }
+      },
+      "PatientProfile": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "record_number",
+          "display_name",
+          "date_of_birth",
+          "organization",
+          "home_center"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "record_number": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 64
+          },
+          "display_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "date_of_birth": {
+            "$ref": "#/components/schemas/Date"
+          },
+          "organization": {
+            "$ref": "#/components/schemas/OrganizationIdentity"
+          },
+          "home_center": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Center"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "PatientProfileEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PatientProfile"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "ServiceIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      },
+      "AppointmentTypeIdentity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "duration_minutes"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 1440
+          }
+        }
+      },
+      "Appointment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "version",
+          "change_allowed",
+          "change_deadline",
+          "attendance_mode",
+          "location_label",
+          "professional_display_name",
+          "service",
+          "appointment_type",
+          "center",
+          "starts_at",
+          "local_starts_at",
+          "ends_at",
+          "local_ends_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "scheduled",
+              "cancelled",
+              "completed",
+              "no_show"
+            ]
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 4294967295
+          },
+          "change_allowed": {
+            "type": "boolean",
+            "description": "Elegibilidad informativa calculada por la misma política que vuelve a validar cada mutación."
+          },
+          "change_deadline": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "attendance_mode": {
+            "type": "string",
+            "enum": [
+              "in_person",
+              "video",
+              "phone"
+            ]
+          },
+          "location_label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "professional_display_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "service": {
+            "$ref": "#/components/schemas/ServiceIdentity"
+          },
+          "appointment_type": {
+            "$ref": "#/components/schemas/AppointmentTypeIdentity"
+          },
+          "center": {
+            "$ref": "#/components/schemas/Center"
+          },
+          "starts_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "local_starts_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "ends_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "local_ends_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "AppointmentEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Appointment"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "AppointmentListEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Appointment"
+            },
+            "maxItems": 50
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        }
+      },
+      "PatientDashboardEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "upcoming_appointments_count",
+              "next_appointment",
+              "available_appointment_types_count"
+            ],
+            "properties": {
+              "upcoming_appointments_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "next_appointment": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/Appointment"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "available_appointment_types_count": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "BookingSlot": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "starts_at",
+          "ends_at",
+          "local_starts_at",
+          "local_ends_at",
+          "center",
+          "location_label"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "starts_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "ends_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "local_starts_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "local_ends_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "center": {
+            "$ref": "#/components/schemas/Center"
+          },
+          "location_label": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "maxLength": 160
+          }
+        }
+      },
+      "BookingAppointmentType": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "duration_minutes",
+          "attendance_mode",
+          "service",
+          "slots"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 160
+          },
+          "duration_minutes": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 1440
+          },
+          "attendance_mode": {
+            "type": "string",
+            "enum": [
+              "in_person",
+              "video",
+              "phone"
+            ]
+          },
+          "service": {
+            "$ref": "#/components/schemas/ServiceIdentity"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingSlot"
+            },
+            "maxItems": 500
+          }
+        }
+      },
+      "BookingOptionsEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "appointment_types"
+            ],
+            "properties": {
+              "appointment_types": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/BookingAppointmentType"
+                },
+                "maxItems": 100
+              }
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/GeneratedMeta"
+          }
+        }
+      },
+      "BookAppointmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "appointment_type_id",
+          "slot_id"
+        ],
+        "properties": {
+          "appointment_type_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "slot_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          }
+        }
+      },
+      "CancelAppointmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "reason_code"
+        ],
+        "properties": {
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "plans_changed",
+              "feeling_better",
+              "transport_issue",
+              "other"
+            ]
+          }
+        }
+      },
+      "RescheduleAppointmentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "slot_id"
+        ],
+        "properties": {
+          "slot_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          }
+        }
+      },
+      "Medication": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "source",
+          "name",
+          "presentation",
+          "schedule_label",
+          "status",
+          "can_request_renewal",
+          "renewal_request_status",
+          "updated_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "professional_record",
+              "patient_declaration"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "presentation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120
+          },
+          "schedule_label": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "inactive"
+            ]
+          },
+          "can_request_renewal": {
+            "type": "boolean"
+          },
+          "renewal_request_status": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "submitted",
+              null
+            ]
+          },
+          "updated_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "MedicationEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/Medication"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "MedicationListEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Medication"
+            },
+            "maxItems": 500
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "DeclareMedicationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "schedule_label"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          },
+          "presentation": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 120,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          },
+          "schedule_label": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          }
+        }
+      },
+      "MedicationRenewalRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "medication_id",
+          "status",
+          "requested_at"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "medication_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "status": {
+            "type": "string",
+            "const": "submitted"
+          },
+          "requested_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "MedicationRenewalEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MedicationRenewalRequest"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "PatientDocument": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "title",
+          "category",
+          "published_at",
+          "center",
+          "file",
+          "integrity_status",
+          "can_download"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "attendance_certificate",
+              "care_summary",
+              "consent",
+              "laboratory",
+              "medication_summary"
+            ]
+          },
+          "published_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "center": {
+            "$ref": "#/components/schemas/CenterIdentity"
+          },
+          "file": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mime_type",
+              "size_bytes",
+              "version"
+            ],
+            "properties": {
+              "mime_type": {
+                "type": "string",
+                "const": "application/pdf"
+              },
+              "size_bytes": {
+                "type": "integer",
+                "minimum": 5,
+                "maximum": 10485760
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "integrity_status": {
+            "type": "string",
+            "const": "verified"
+          },
+          "can_download": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "DocumentListEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PatientDocument"
+            },
+            "maxItems": 500
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "DocumentDownloadAuthorization": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "document_id",
+          "download_url",
+          "expires_at"
+        ],
+        "properties": {
+          "document_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "download_url": {
+            "type": "string",
+            "pattern": "^/api/v1/patient/document-downloads/[A-Za-z0-9_-]{43}$"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "DocumentDownloadAuthorizationEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DocumentDownloadAuthorization"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      }
+    }
+  }
+}

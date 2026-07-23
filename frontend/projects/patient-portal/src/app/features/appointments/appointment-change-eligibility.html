@@ -1,0 +1,20 @@
+<section aria-labelledby="eligibility-heading">
+  <span class="eligibility-icon" aria-hidden="true">
+    <sn-icon name="event_busy" [size]="30" />
+  </span>
+  <div>
+    <p class="sn-eyebrow">Estado confirmado</p>
+    <h2 id="eligibility-heading">Esta cita ya no admite cambios</h2>
+    <p>
+      Su estado es <strong>{{ statusLabel() }}</strong
+      >. La disponibilidad que muestra el servidor es la referencia autorizada.
+    </p>
+    <p class="deadline-note">
+      <sn-icon name="schedule" [size]="19" /> Límite informado: {{ deadlineLabel() }}
+    </p>
+    <div class="sn-action-row">
+      <a matButton="filled" routerLink="/citas">Volver a mis citas</a>
+      <a matButton="outlined" routerLink="/citas/reservar">Pedir otra cita</a>
+    </div>
+  </div>
+</section>

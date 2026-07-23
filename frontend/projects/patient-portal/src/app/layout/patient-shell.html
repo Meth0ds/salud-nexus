@@ -1,0 +1,92 @@
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+<div class="patient-shell">
+  <header class="topbar">
+    <a class="brand" routerLink="/inicio" aria-label="Salud Nexus, ir al inicio">
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+      <span><strong>salud</strong> nexus</span>
+    </a>
+
+    <div class="topbar-actions">
+      @if (isDemo) {
+        <span class="demo-label"><sn-icon name="science" [size]="17" /> Datos sintéticos</span>
+      }
+      <a matButton="text" routerLink="/privacidad" class="help-link">
+        <sn-icon name="help" [size]="19" />
+        <span>Ayuda y privacidad</span>
+      </a>
+      <button
+        class="profile-button"
+        type="button"
+        [matMenuTriggerFor]="accountMenu"
+        [attr.aria-label]="
+          isDemo ? 'Abrir menú de la cuenta de demostración' : 'Abrir menú de la cuenta'
+        "
+      >
+        {{ sessionStore.session()?.initials ?? 'DE' }}
+      </button>
+      <mat-menu #accountMenu="matMenu">
+        <button mat-menu-item type="button" (click)="signOut()">
+          <sn-icon name="logout" [size]="19" />
+          <span>Cerrar sesión</span>
+        </button>
+      </mat-menu>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <nav class="side-navigation" aria-label="Navegación principal">
+      <p class="nav-eyebrow">Tu espacio</p>
+      @for (item of navigationItems; track item.path) {
+        <a
+          class="nav-item"
+          [routerLink]="item.path"
+          routerLinkActive="nav-item--active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
+          #activeLink="routerLinkActive"
+          [attr.aria-current]="activeLink.isActive ? 'page' : null"
+        >
+          <sn-icon [name]="item.icon" [size]="21" />
+          <span>{{ item.label }}</span>
+        </a>
+      }
+
+      @if (isDemo) {
+        <section class="demo-control" aria-labelledby="demo-control-title">
+          <sn-icon name="experiment" [size]="21" />
+          <div>
+            <strong id="demo-control-title">Estados de interfaz</strong>
+            <span>Comprueba la respuesta sin usar datos reales.</span>
+          </div>
+          <label for="demo-scenario">Estado mostrado</label>
+          <select id="demo-scenario" (change)="updateScenario($event)">
+            <option value="ready">Con datos</option>
+            <option value="loading">Carga</option>
+            <option value="empty">Vacío</option>
+            <option value="error">Error</option>
+            <option value="restricted">Acceso restringido</option>
+          </select>
+        </section>
+      }
+    </nav>
+
+    <main #mainContent id="main-content" tabindex="-1">
+      <router-outlet (activate)="onRouteActivate()" />
+    </main>
+  </div>
+
+  <nav class="bottom-navigation" aria-label="Navegación principal móvil">
+    @for (item of navigationItems; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="bottom-navigation__item--active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/inicio' }"
+        #mobileActiveLink="routerLinkActive"
+        [attr.aria-current]="mobileActiveLink.isActive ? 'page' : null"
+      >
+        <sn-icon [name]="item.icon" [size]="21" />
+        <span>{{ item.label }}</span>
+      </a>
+    }
+  </nav>
+</div>

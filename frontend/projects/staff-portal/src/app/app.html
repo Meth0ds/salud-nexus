@@ -1,0 +1,103 @@
+<a class="skip-link" href="#staff-main">Saltar al contenido principal</a>
+
+<div class="workspace-shell">
+  <aside class="rail">
+    <a class="brand" routerLink="/agenda" aria-label="Salud Nexus, inicio del personal">
+      <span class="brand-mark" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+      <span class="brand-copy">
+        <strong>Salud Nexus</strong>
+        <small>Operaciones asistenciales</small>
+      </span>
+    </a>
+
+    <div class="shift-marker" aria-label="Turno activo">
+      <span class="pulse" aria-hidden="true"></span>
+      <span>
+        <small>Turno de mañana</small>
+        <strong>En curso · 08:00–15:00</strong>
+      </span>
+    </div>
+
+    <nav aria-label="Áreas de trabajo">
+      <a routerLink="/agenda" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">calendar_month</mat-icon>
+        <span>Agenda</span>
+      </a>
+      <a routerLink="/recepcion" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">patient_list</mat-icon>
+        <span>Recepción</span>
+      </a>
+      <a routerLink="/administracion" routerLinkActive="active" ariaCurrentWhenActive="page">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">shield_person</mat-icon>
+        <span>Administración</span>
+      </a>
+    </nav>
+
+    <div class="rail-foot">
+      <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">visibility_lock</mat-icon>
+      <span>
+        <strong>Privacidad activa</strong>
+        <small>Actividad auditada en servidor</small>
+      </span>
+    </div>
+  </aside>
+
+  <section class="workspace-frame">
+    <header class="topbar">
+      <div class="facility-context" aria-label="Centro sanitario configurado">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">location_city</mat-icon>
+        <span
+          ><small>Centro sanitario</small><strong>{{ centerName }}</strong></span
+        >
+      </div>
+
+      <div class="context-control">
+        <label for="workspace-context">Área de trabajo</label>
+        <div class="select-wrap">
+          <select
+            id="workspace-context"
+            [value]="workspace.activeContext().id"
+            (change)="changeContext($event)"
+          >
+            @for (context of workspace.contexts; track context.id) {
+              <option [value]="context.id">{{ context.service }}</option>
+            }
+          </select>
+          <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">expand_more</mat-icon>
+        </div>
+      </div>
+
+      <span class="role-tag">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">badge</mat-icon>
+        {{ workspace.activeRoleLabel() }}
+      </span>
+
+      <span class="topbar-spacer"></span>
+
+      <span class="session-state">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">lock</mat-icon>
+        <span><strong>Sesión protegida</strong><small>11 min restantes</small></span>
+      </span>
+
+      <button mat-icon-button type="button" aria-label="Abrir ayuda" matTooltip="Ayuda del portal">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">help</mat-icon>
+      </button>
+
+      <button
+        class="staff-avatar"
+        type="button"
+        aria-label="Abrir menú de Marta R., profesional demo"
+      >
+        MR
+      </button>
+    </header>
+
+    <main id="staff-main" tabindex="-1">
+      <router-outlet />
+    </main>
+  </section>
+</div>

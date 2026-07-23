@@ -1,0 +1,48 @@
+- generic [ref=f2e59]:
+  - link "Saltar al contenido" [ref=f2e60] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e61]:
+    - banner [ref=f2e62]:
+      - link "Salud Nexus, ir al inicio" [ref=f2e63] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e67]:
+          - strong [ref=f2e68]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=f2e70] [cursor=pointer]: LM
+    - main [ref=f2e72]:
+      - generic [ref=f2e251]:
+        - link [ref=f2e252] [cursor=pointer]:
+          - /url: /citas
+          - generic [ref=f2e253]: arrow_back
+          - text: Volver a mis citas
+        - generic [ref=f2e256]:
+          - paragraph [ref=f2e257]: Reserva guiada
+          - heading "Pedir una cita" [level=1] [ref=f2e258]
+          - paragraph [ref=f2e259]: Cuatro pasos breves. La disponibilidad y confirmación son sintéticas en esta demo.
+        - paragraph [ref=f2e260]: Cita confirmada en la demostración.
+        - status [ref=f2e366]:
+          - generic [ref=f2e367]: event_available
+          - paragraph [ref=f2e370]: Reserva sintética completada
+          - heading "Cita confirmada en la demo" [level=2] [ref=f2e371]
+          - paragraph [ref=f2e372]: Miércoles, 29 de julio de 2026 · 11:30–12:00 Dra. Elena Robles · Centro Atlántico
+          - generic [ref=f2e373]:
+            - generic [ref=f2e374]: info
+            - text: No se ha contactado con ningún centro ni se ha creado una cita real.
+          - link "Volver a mis citas" [ref=f2e376] [cursor=pointer]:
+            - /url: /citas
+    - navigation "Navegación principal móvil" [ref=f2e229]:
+      - link "Inicio" [ref=f2e230] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e231]: space_dashboard
+      - link "Citas" [ref=f2e234] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=f2e235]: calendar_month
+      - link "Medicación" [ref=f2e238] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=f2e239]: medication
+      - link "Documentos" [ref=f2e242] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=f2e243]: folder_open
+      - link "Privacidad" [ref=f2e246] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=f2e247]: shield_lock

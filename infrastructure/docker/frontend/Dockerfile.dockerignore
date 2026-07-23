@@ -1,0 +1,15 @@
+**
+!frontend/
+!frontend/angular.json
+!frontend/eslint.config.js
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/tsconfig.json
+!frontend/projects/
+!frontend/projects/**
+!infrastructure/
+!infrastructure/docker/
+!infrastructure/docker/frontend/
+!infrastructure/docker/frontend/**
+
+frontend/projects/**/output/

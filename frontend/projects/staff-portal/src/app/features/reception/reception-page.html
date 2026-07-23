@@ -1,0 +1,205 @@
+<article class="reception-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Admisión · Centro Atlántico</p>
+      <h1>Recepción y llegada</h1>
+      <p>Cola operativa con identificadores minimizados y datos exclusivamente sintéticos.</p>
+    </div>
+    <span class="desk-state">
+      <i aria-hidden="true"></i>
+      Puesto 02 operativo
+    </span>
+  </header>
+
+  <section class="arrival-strip" aria-label="Resumen de llegadas">
+    <div>
+      <strong>{{ waitingCount() }}</strong
+      ><span>personas en espera</span>
+    </div>
+    <div><strong>04:12</strong><span>espera media</span></div>
+    <div><strong>2</strong><span>puestos disponibles</span></div>
+    <div class="flow-spark" aria-label="Flujo estable durante la última hora">
+      <span style="--height: 35%"></span><span style="--height: 58%"></span
+      ><span style="--height: 42%"></span><span style="--height: 78%"></span
+      ><span style="--height: 62%"></span><span style="--height: 88%"></span
+      ><small>Flujo estable · 60 min</small>
+    </div>
+  </section>
+
+  <form class="queue-search" (submit)="searchQueue(); $event.preventDefault()">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <mat-label>Buscar en esta cola</mat-label>
+      <mat-icon matPrefix fontSet="material-symbols-rounded" aria-hidden="true">search</mat-icon>
+      <input
+        matInput
+        id="queue-search"
+        type="search"
+        autocomplete="off"
+        [formField]="searchForm.query"
+        aria-describedby="queue-search-help"
+      />
+      @if (searchForm.query().touched() && searchForm.query().errors().length) {
+        <mat-error>{{ searchForm.query().errors()[0].message }}</mat-error>
+      }
+    </mat-form-field>
+    <span id="queue-search-help" class="search-help">Nombre demo o últimos 4 dígitos</span>
+    <button
+      mat-flat-button
+      type="submit"
+      [disabled]="searchForm().invalid() || searchForm().pending()"
+    >
+      Buscar
+    </button>
+    @if (activeQuery()) {
+      <button mat-button type="button" (click)="clearSearch()">Limpiar</button>
+    }
+  </form>
+
+  <p class="action-message" aria-live="polite" aria-atomic="true">{{ actionMessage() }}</p>
+
+  @switch (workspace.receptionQueue().status) {
+    @case ('idle') {
+      <section class="state-panel" data-state="loading">
+        <mat-spinner diameter="32" />
+        <p>Preparando la cola segura…</p>
+      </section>
+    }
+    @case ('loading') {
+      <section class="state-panel" data-state="loading">
+        <mat-spinner diameter="32" />
+        <p>{{ workspace.receptionQueue().message }}</p>
+      </section>
+    }
+    @case ('empty') {
+      <section class="state-panel" data-state="empty">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">weekend</mat-icon>
+        <h2>La recepción está al día</h2>
+        <p>No hay personas esperando en este contexto.</p>
+        <button mat-stroked-button type="button" (click)="refresh()">Actualizar cola</button>
+      </section>
+    }
+    @case ('error') {
+      <section class="state-panel error" data-state="error" role="alert">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">wifi_off</mat-icon>
+        <h2>No se pudo actualizar la cola</h2>
+        <p>{{ workspace.receptionQueue().message }}</p>
+        <button mat-flat-button type="button" (click)="refresh()">Reintentar</button>
+      </section>
+    }
+    @case ('ready') {
+      <div class="reception-layout" animate.enter="page-enter">
+        <section class="queue-panel" aria-labelledby="queue-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Llegadas de hoy</p>
+              <h2 id="queue-title">Cola activa</h2>
+            </div>
+            <span>{{ filteredQueue().length }} resultados</span>
+          </div>
+
+          @if (filteredQueue().length === 0) {
+            <div class="search-empty" data-state="search-empty">
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                >person_search</mat-icon
+              >
+              <h3>No hay coincidencias</h3>
+              <p>Revisa el texto o vuelve a mostrar toda la cola.</p>
+              <button mat-button type="button" (click)="clearSearch()">Mostrar toda la cola</button>
+            </div>
+          } @else {
+            <div class="table-scroll" tabindex="0" aria-label="Tabla desplazable de llegadas">
+              <table>
+                <caption>
+                  Personas sintéticas pendientes de admisión
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Orden</th>
+                    <th scope="col">Persona</th>
+                    <th scope="col">Llegada</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (entry of filteredQueue(); track entry.id) {
+                    <tr [attr.data-entry-id]="entry.id">
+                      <td>
+                        <span class="position">{{ entry.position }}</span>
+                      </td>
+                      <td>
+                        <strong>{{ entry.displayName }}</strong>
+                        <small>ID {{ entry.maskedDocument }}</small>
+                      </td>
+                      <td>
+                        <strong>{{ entry.arrivalTime }}</strong>
+                        <small>{{ entry.waitMinutes }} min de espera</small>
+                      </td>
+                      <td>
+                        <span class="status" [attr.data-status]="entry.status">{{
+                          statusLabel(entry.status)
+                        }}</span>
+                      </td>
+                      <td>
+                        @if (entry.status === 'checked-in') {
+                          <mat-icon
+                            class="confirmed"
+                            fontSet="material-symbols-rounded"
+                            aria-label="Confirmada"
+                            >task_alt</mat-icon
+                          >
+                        } @else {
+                          <button
+                            mat-stroked-button
+                            type="button"
+                            [attr.data-check-in-id]="entry.id"
+                            [disabled]="workspace.pendingCheckIns().has(entry.id)"
+                            (click)="confirmCheckIn(entry)"
+                          >
+                            @if (workspace.pendingCheckIns().has(entry.id)) {
+                              Confirmando…
+                            } @else {
+                              Confirmar llegada
+                            }
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </section>
+
+        <aside class="arrival-guide" aria-labelledby="guide-title">
+          <div class="guide-visual" aria-hidden="true">
+            <mat-icon fontSet="material-symbols-rounded">qr_code_2</mat-icon>
+            <span></span>
+          </div>
+          <p class="section-kicker">Canal alternativo</p>
+          <h2 id="guide-title">Autoadmisión preparada</h2>
+          <p>
+            El código del centro deriva a una sesión temporal. No contiene información sanitaria.
+          </p>
+          <ul>
+            <li>
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">timer</mat-icon>
+              Caduca en 5 minutos
+            </li>
+            <li>
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                >phonelink_lock</mat-icon
+              >
+              Sin datos en el dispositivo
+            </li>
+            <li>
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">policy</mat-icon>
+              Confirmación en servidor
+            </li>
+          </ul>
+        </aside>
+      </div>
+    }
+  }
+</article>

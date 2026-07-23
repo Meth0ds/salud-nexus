@@ -1,0 +1,8 @@
+**
+!backend/
+!backend/public/
+!backend/public/**
+!infrastructure/
+!infrastructure/docker/
+!infrastructure/docker/api-proxy/
+!infrastructure/docker/api-proxy/**

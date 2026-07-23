@@ -1,0 +1,45 @@
+<a class="skip-link" href="#main-content">Saltar al contenido principal</a>
+
+<header class="topbar">
+  <a class="brand" routerLink="/" aria-label="Salud Nexus, laboratorio de diseño">
+    <span class="brand__mark" aria-hidden="true">
+      <span></span>
+      <span></span>
+    </span>
+    <span class="brand__copy" data-testid="brand">
+      <strong>Salud Nexus</strong>
+      <small>Laboratorio de experiencia sanitaria</small>
+    </span>
+  </a>
+
+  <div class="trust-signals" aria-label="Principios del producto">
+    <span><i aria-hidden="true">verified_user</i> Privacidad por defecto</span>
+    <span><i aria-hidden="true">accessibility_new</i> WCAG 2.2 AA</span>
+  </div>
+
+  <nav aria-label="Navegación del laboratorio">
+    <a routerLink="/catalogo" routerLinkActive="is-active">Catálogo</a>
+    <a routerLink="/showcase/paciente" routerLinkActive="is-active">Paciente</a>
+    <a routerLink="/showcase/clinico" routerLinkActive="is-active">Clínico</a>
+    <a routerLink="/showcase/seguridad" routerLinkActive="is-active">Seguridad</a>
+  </nav>
+
+  <button
+    class="theme-toggle"
+    type="button"
+    [attr.aria-pressed]="darkMode()"
+    [attr.aria-label]="darkMode() ? 'Usar tema claro' : 'Usar tema oscuro'"
+    (click)="toggleTheme()"
+  >
+    <i aria-hidden="true">{{ darkMode() ? 'light_mode' : 'dark_mode' }}</i>
+  </button>
+</header>
+
+<main id="main-content" tabindex="-1">
+  <router-outlet />
+</main>
+
+<footer>
+  <span>Datos exclusivamente sintéticos</span>
+  <span>Angular 22 · Material 3 · CDK · Aria</span>
+</footer>

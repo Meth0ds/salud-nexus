@@ -1,0 +1,270 @@
+<div class="sn-patient-page">
+  <header class="sn-page-header medication-header">
+    <div>
+      <p class="sn-eyebrow">Información personal</p>
+      <h1>Medicación</h1>
+      <p>
+        Distingue la información del registro profesional de la que has declarado personalmente.
+      </p>
+    </div>
+    <button
+      matButton="filled"
+      type="button"
+      aria-controls="medication-declaration"
+      [attr.aria-expanded]="declarationOpen()"
+      (click)="toggleDeclaration()"
+    >
+      <sn-icon [name]="declarationOpen() ? 'close' : 'add'" [size]="19" />
+      {{ declarationOpen() ? 'Cerrar formulario' : 'Añadir lo que tomo' }}
+    </button>
+  </header>
+
+  <p class="sn-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+  <aside class="clinical-boundary" aria-labelledby="clinical-boundary-title">
+    <span aria-hidden="true"><sn-icon name="info" [size]="24" /></span>
+    <div>
+      <h2 id="clinical-boundary-title">Información, no prescripción</h2>
+      <p>
+        Este portal no prescribe, valida ni cambia tratamientos. Ante síntomas, cambios o dudas,
+        contacta con tu equipo asistencial.
+      </p>
+    </div>
+    <button matButton="outlined" type="button" (click)="requestHelp()">
+      Contactar con el centro
+    </button>
+  </aside>
+
+  @if (declarationOpen()) {
+    <section
+      class="declaration-panel"
+      id="medication-declaration"
+      aria-labelledby="declaration-title"
+    >
+      <div class="declaration-intro">
+        <span class="declaration-icon" aria-hidden="true"
+          ><sn-icon name="edit_note" [size]="26"
+        /></span>
+        <div>
+          <p class="sn-eyebrow">Declaración personal</p>
+          <h2 id="declaration-title">Añade una medicación que tomas</h2>
+          <p>
+            Quedará claramente marcada como declarada por ti y no modificará el registro profesional
+            del centro.
+          </p>
+        </div>
+      </div>
+
+      <form novalidate (submit)="declareMedication(); $event.preventDefault()">
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre</mat-label>
+          <input
+            matInput
+            id="declared-medication-name"
+            autocomplete="off"
+            [formField]="declarationForm.name"
+          />
+          <mat-hint>Tal como aparece en el envase</mat-hint>
+          @if (declarationForm.name().touched() && declarationForm.name().errors()[0]; as error) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Presentación (opcional)</mat-label>
+          <input
+            matInput
+            id="declared-medication-presentation"
+            autocomplete="off"
+            [formField]="declarationForm.presentation"
+          />
+          <mat-hint>Por ejemplo: 50 mg · comprimidos</mat-hint>
+          @if (
+            declarationForm.presentation().touched() && declarationForm.presentation().errors()[0];
+            as error
+          ) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="schedule-field">
+          <mat-label>Cómo lo tomas</mat-label>
+          <textarea
+            matInput
+            id="declared-medication-schedule"
+            rows="2"
+            [formField]="declarationForm.scheduleLabel"
+          ></textarea>
+          <mat-hint>Describe únicamente lo que haces actualmente</mat-hint>
+          @if (
+            declarationForm.scheduleLabel().touched() &&
+              declarationForm.scheduleLabel().errors()[0];
+            as error
+          ) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="declaration-actions">
+          <p><sn-icon name="shield" [size]="18" /> Origen visible: “Declarada por ti”</p>
+          <button matButton="filled" type="submit" [disabled]="declaring()">
+            <sn-icon [name]="declaring() ? 'progress_activity' : 'add_circle'" [size]="19" />
+            {{ declaring() ? 'Añadiendo…' : 'Añadir información' }}
+          </button>
+        </div>
+
+        @if (declarationError()) {
+          <p class="mutation-message mutation-message--error" role="alert">
+            <sn-icon name="error" [size]="19" /> {{ declarationError() }}
+          </p>
+        }
+        @if (declarationSuccess()) {
+          <p class="mutation-message mutation-message--success" role="status">
+            <sn-icon name="check_circle" [size]="19" /> {{ declarationSuccess() }}
+          </p>
+        }
+      </form>
+    </section>
+  }
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Cargando la información"
+          [description]="
+            isDemo
+              ? 'Consultamos el registro sintético de medicación.'
+              : 'Consultamos de forma segura la información disponible.'
+          "
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="No hay medicación disponible"
+          description="Puedes añadir lo que tomas o esperar a que el centro publique su información."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudo cargar la información"
+          description="No hagas cambios basándote en una pantalla incompleta. Inténtalo de nuevo."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="Información restringida"
+          description="El centro debe validar tu relación con este perfil antes de mostrarla."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        <section class="medication-panel sn-reveal" aria-labelledby="medication-list-title">
+          <div class="sn-section-heading">
+            <div>
+              <p class="sn-eyebrow">Registro actual</p>
+              <h2 id="medication-list-title">Información disponible</h2>
+            </div>
+            <sn-status-chip [label]="state.data.length + ' elementos'" tone="info" />
+          </div>
+
+          <div class="source-legend" aria-label="Tipos de origen">
+            <span><i class="source-dot source-dot--professional"></i> Registro profesional</span>
+            <span><i class="source-dot source-dot--patient"></i> Declarada por ti</span>
+          </div>
+
+          <ul class="medication-list">
+            @for (item of state.data; track item.id) {
+              <li [class.medication-item--patient]="item.source === 'patient-declaration'">
+                <span class="medication-icon" aria-hidden="true"
+                  ><sn-icon
+                    [name]="item.source === 'patient-declaration' ? 'person_edit' : 'pill'"
+                    [size]="24"
+                /></span>
+                <div class="medication-copy">
+                  <div class="medication-heading">
+                    <div>
+                      <h3>{{ item.name }}</h3>
+                      <p>{{ item.presentation }}</p>
+                    </div>
+                    <sn-status-chip
+                      [label]="item.sourceLabel"
+                      [tone]="item.source === 'professional-record' ? 'success' : 'info'"
+                    />
+                  </div>
+                  <dl>
+                    <div>
+                      <dt>Cómo figura</dt>
+                      <dd>{{ item.scheduleLabel }}</dd>
+                    </div>
+                    <div>
+                      <dt>Estado</dt>
+                      <dd>{{ item.status === 'active' ? 'Activa' : 'Inactiva' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Última actualización</dt>
+                      <dd>{{ item.lastUpdatedLabel }}</dd>
+                    </div>
+                  </dl>
+
+                  <div class="medication-actions">
+                    @if (
+                      item.renewalRequestStatus === 'submitted' ||
+                      renewalRequestedIds().has(item.id)
+                    ) {
+                      <p class="renewal-confirmation" role="status">
+                        <sn-icon name="task_alt" [size]="19" /> Solicitud de renovación enviada
+                      </p>
+                    } @else if (item.canRequestRenewal) {
+                      <button
+                        matButton="outlined"
+                        type="button"
+                        [disabled]="renewingMedicationId() !== undefined"
+                        (click)="requestRenewal(item)"
+                      >
+                        <sn-icon
+                          [name]="
+                            renewingMedicationId() === item.id ? 'progress_activity' : 'autorenew'
+                          "
+                          [size]="19"
+                        />
+                        {{
+                          renewingMedicationId() === item.id
+                            ? 'Enviando solicitud…'
+                            : 'Solicitar renovación'
+                        }}
+                      </button>
+                    } @else if (item.source === 'patient-declaration') {
+                      <p class="patient-origin-note">
+                        Las declaraciones personales no generan renovaciones.
+                      </p>
+                    }
+
+                    @if (renewalError()?.id === item.id) {
+                      <p class="renewal-error" role="alert">{{ renewalError()?.message }}</p>
+                    }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <aside class="safety-note">
+          <sn-icon name="health_and_safety" [size]="22" />
+          <div>
+            <strong>¿Algo no coincide?</strong>
+            <span>No alteres el tratamiento por esta pantalla: contacta con tu centro.</span>
+          </div>
+        </aside>
+      }
+    }
+  }
+</div>

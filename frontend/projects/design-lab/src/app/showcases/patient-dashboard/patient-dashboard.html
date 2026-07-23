@@ -1,0 +1,111 @@
+<section class="patient-showcase" aria-labelledby="patient-dashboard-title">
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+
+  <header class="topbar">
+    <a
+      class="brand"
+      href="#patient-dashboard-title"
+      aria-label="Salud Nexus, ir al contenido principal"
+    >
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+      <span><strong>salud</strong> nexus</span>
+    </a>
+    <div class="topbar-actions">
+      <span class="demo-label"
+        ><mat-icon aria-hidden="true">science</mat-icon> Datos de demostración</span
+      >
+      <button matButton="text" type="button" aria-label="Abrir ayuda">
+        <mat-icon aria-hidden="true">help</mat-icon>
+        <span class="desktop-only">Ayuda</span>
+      </button>
+      <button
+        class="profile-button"
+        type="button"
+        aria-label="Abrir perfil de Laura, perfil ficticio"
+      >
+        <span aria-hidden="true">LM</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <nav class="side-navigation" aria-label="Navegación del portal del paciente">
+      <p class="nav-eyebrow">Tu espacio</p>
+      @for (item of navigationItems; track item.label) {
+        <button
+          class="nav-item"
+          [class.nav-item--active]="activeNavigation() === item.label"
+          [attr.aria-current]="activeNavigation() === item.label ? 'page' : null"
+          type="button"
+          (click)="selectNavigation(item.label)"
+        >
+          <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </button>
+      }
+      <div class="support-card">
+        <mat-icon aria-hidden="true">support_agent</mat-icon>
+        <div>
+          <strong>¿Necesitas ayuda?</strong>
+          <span>El centro puede orientarte.</span>
+        </div>
+        <button matButton="outlined" type="button">Contactar</button>
+      </div>
+    </nav>
+
+    <main class="content" id="patient-dashboard-title" tabindex="-1">
+      <div class="welcome-row reveal">
+        <div>
+          <p class="eyebrow">Domingo, 19 de julio</p>
+          <h1>Buenos días, Laura</h1>
+          <p class="lede">Esto es lo importante para tu atención esta semana.</p>
+        </div>
+        <button matButton="filled" type="button">
+          <mat-icon aria-hidden="true">add</mat-icon>
+          Pedir una cita
+        </button>
+      </div>
+
+      @if (privacyNoticeVisible()) {
+        <aside
+          class="privacy-note reveal reveal--second"
+          aria-label="Información de privacidad"
+          animate.leave="notice-leave"
+        >
+          <div class="privacy-icon"><mat-icon aria-hidden="true">shield_lock</mat-icon></div>
+          <div>
+            <strong>Tu información permanece en contexto</strong>
+            <p>
+              Solo mostramos lo necesario para esta tarea. Puedes revisar quién accedió a tus datos.
+            </p>
+          </div>
+          <button
+            class="close-button"
+            type="button"
+            aria-label="Ocultar información de privacidad"
+            (click)="dismissPrivacyNotice()"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </aside>
+      }
+
+      <sn-design-patient-care-path />
+      <sn-design-patient-action-board />
+    </main>
+  </div>
+
+  <nav class="bottom-navigation" aria-label="Navegación móvil del portal del paciente">
+    @for (item of navigationItems.slice(0, 4); track item.label) {
+      <button
+        [class.bottom-navigation__item--active]="activeNavigation() === item.label"
+        [attr.aria-current]="activeNavigation() === item.label ? 'page' : null"
+        type="button"
+        (click)="selectNavigation(item.label)"
+      >
+        <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon>
+        <span>{{ item.label }}</span>
+      </button>
+    }
+  </nav>
+</section>

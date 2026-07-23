@@ -1,0 +1,95 @@
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.sn-shell-card {
+  overflow: hidden;
+  border: 1px solid var(--sn-color-border-subtle, #c9dadd);
+  border-radius: var(--sn-radius-lg, 1rem);
+  background: var(--sn-color-surface, #fff);
+  box-shadow: var(--sn-elevation-1, 0 1px 2px rgb(5 45 54 / 8%));
+  color: var(--sn-color-text, #0a3039);
+}
+
+.sn-shell-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sn-space-5, 1.25rem);
+  padding: var(--sn-space-5, 1.25rem);
+  border-block-end: 1px solid var(--sn-color-border-subtle, #c9dadd);
+}
+
+.sn-shell-card__titles {
+  min-inline-size: 0;
+}
+
+.sn-shell-card__eyebrow,
+.sn-shell-card__supporting,
+h2 {
+  margin: 0;
+}
+
+.sn-shell-card__eyebrow {
+  margin-block-end: var(--sn-space-1, 0.25rem);
+  color: var(--sn-color-primary, #00616c);
+  font-family: var(--sn-font-body, 'Source Sans 3', sans-serif);
+  font-size: var(--sn-type-label, 0.8125rem);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+h2 {
+  overflow-wrap: anywhere;
+  font-family: var(--sn-font-display, 'Manrope', sans-serif);
+  font-size: var(--sn-type-heading-md, clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.sn-shell-card__supporting {
+  margin-block-start: var(--sn-space-2, 0.5rem);
+  color: var(--sn-color-text-muted, #3b5961);
+  font-family: var(--sn-font-body, 'Source Sans 3', sans-serif);
+  font-size: var(--sn-type-body-sm, 0.9375rem);
+  line-height: 1.45;
+}
+
+.sn-shell-card__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sn-space-2, 0.5rem);
+}
+
+.sn-shell-card__actions:empty {
+  display: none;
+}
+
+.sn-shell-card__content {
+  padding: var(--sn-space-5, 1.25rem);
+}
+
+@media (width <= 36rem) {
+  .sn-shell-card__header {
+    flex-direction: column;
+  }
+
+  .sn-shell-card__actions {
+    inline-size: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (forced-colors: active) {
+  .sn-shell-card,
+  .sn-shell-card__header {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}

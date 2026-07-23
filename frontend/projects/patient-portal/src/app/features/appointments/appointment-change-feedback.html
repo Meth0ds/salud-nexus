@@ -1,0 +1,15 @@
+<aside [attr.data-kind]="kind()" tabindex="-1" role="alert">
+  <span aria-hidden="true">
+    <sn-icon [name]="kind() === 'offline' ? 'cloud_off' : 'warning'" [size]="24" />
+  </span>
+  <div>
+    <strong>{{ title() }}</strong>
+    <p>{{ message() }}</p>
+    @if (requestId()) {
+      <small>Referencia: {{ requestId() }}</small>
+    }
+  </div>
+  <button matButton="outlined" type="button" (click)="recover.emit()">
+    {{ actionLabel() }}
+  </button>
+</aside>

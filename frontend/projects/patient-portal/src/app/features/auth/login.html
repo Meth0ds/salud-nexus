@@ -1,0 +1,122 @@
+<a class="skip-link" href="/iniciar-sesion#login-main" (click)="skipToAccess($event)"
+  >Saltar al acceso</a
+>
+
+<main #loginMain class="login-page" id="login-main" tabindex="-1">
+  <section class="story-panel" aria-labelledby="story-title">
+    <div class="brand" aria-label="Salud Nexus">
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+      <span><strong>salud</strong> nexus</span>
+    </div>
+
+    <div class="story-copy">
+      <p class="eyebrow">Portal del paciente</p>
+      <h2 id="story-title">Tu atención, reunida con el contexto justo.</h2>
+      <p>
+        Citas, documentos, medicación comunicada por tu centro y un registro claro de accesos, sin
+        mezclar tareas administrativas con decisiones clínicas.
+      </p>
+    </div>
+
+    <ol class="care-line" aria-label="Recorrido del portal">
+      <li><sn-icon name="event_available" [size]="20" /><span>Prepara tu próxima cita</span></li>
+      <li><sn-icon name="folder_open" [size]="20" /><span>Consulta tus documentos</span></li>
+      <li><sn-icon name="shield_lock" [size]="20" /><span>Revisa quién accedió</span></li>
+    </ol>
+
+    <p class="privacy-promise">
+      <sn-icon name="verified_user" [size]="19" />
+      @if (isDemo) {
+        La sesión de esta demo solo vive en memoria y desaparece al recargar o cerrar sesión.
+      } @else {
+        La sesión se protege en el servidor y nunca se guarda en el almacenamiento del navegador.
+      }
+    </p>
+  </section>
+
+  <section class="access-panel" aria-labelledby="login-title">
+    <div class="access-card">
+      @if (isDemo) {
+        <div class="demo-badge"><sn-icon name="science" [size]="17" /> Entorno de demostración</div>
+      } @else {
+        <div class="demo-badge"><sn-icon name="shield_lock" [size]="17" /> Conexión protegida</div>
+      }
+      <p class="eyebrow">Acceso seguro</p>
+      <h1 id="login-title">Accede a tu espacio de salud</h1>
+      <p class="intro">
+        @if (isDemo) {
+          Usa las credenciales sintéticas. No se conecta con pacientes, el centro ni sistemas
+          reales.
+        } @else {
+          Accede con las credenciales facilitadas por tu centro. El servidor volverá a comprobar
+          cada permiso.
+        }
+      </p>
+
+      @if (isDemo) {
+        <aside class="credentials-note" aria-label="Credenciales de demostración">
+          <strong>Credenciales demo</strong>
+          <span>laura.demo&#64;saludnexus.test</span>
+          <span>NEXUS-2026</span>
+        </aside>
+      }
+
+      <form novalidate (submit)="signIn(); $event.preventDefault()">
+        <mat-form-field appearance="outline">
+          <mat-label>Correo electrónico</mat-label>
+          <input
+            matInput
+            id="demo-email"
+            type="email"
+            autocomplete="username"
+            spellcheck="false"
+            [formField]="loginForm.email"
+          />
+          <mat-hint>{{
+            isDemo ? 'Cuenta sintética de esta demostración' : 'Tu cuenta del centro'
+          }}</mat-hint>
+          @if (loginForm.email().touched() && loginForm.email().errors()[0]; as error) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ isDemo ? 'Código de acceso' : 'Contraseña' }}</mat-label>
+          <input
+            matInput
+            id="access-secret"
+            type="password"
+            autocomplete="current-password"
+            [formField]="loginForm.password"
+          />
+          <mat-hint>No se almacena en este navegador</mat-hint>
+          @if (loginForm.password().touched() && loginForm.password().errors()[0]; as error) {
+            <mat-error>{{ error.message }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (loginError()) {
+          <div class="login-error" role="alert">
+            <sn-icon name="error" [size]="20" />
+            <span>{{ loginError() }}</span>
+          </div>
+        }
+
+        <button matButton="filled" type="submit" [disabled]="submitting()">
+          {{ submitLabel() }}
+          <sn-icon name="arrow_forward" [size]="19" />
+        </button>
+      </form>
+
+      <p class="security-footnote">
+        @if (isDemo) {
+          En producción, el acceso se delegará en un proveedor de identidad y la autorización se
+          verificará de nuevo en el servidor.
+        } @else {
+          La autorización se verifica en el servidor. Cierra la sesión al terminar si compartes el
+          dispositivo.
+        }
+      </p>
+    </div>
+  </section>
+</main>

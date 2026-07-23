@@ -1,0 +1,365 @@
+:host {
+  display: block;
+}
+
+.medication-header {
+  align-items: end;
+}
+
+.medication-header > button {
+  flex: 0 0 auto;
+}
+
+.clinical-boundary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.9rem;
+  align-items: center;
+  padding: 1rem;
+  margin-block: 1.75rem 1.25rem;
+  border: 1px solid var(--sn-color-status-info-border);
+  border-radius: var(--sn-radius-lg);
+  color: var(--sn-color-status-info-text);
+  background: var(--sn-color-status-info-surface);
+}
+
+.clinical-boundary > span {
+  display: grid;
+  inline-size: 2.8rem;
+  block-size: 2.8rem;
+  border-radius: 0.8rem;
+  background: #fff;
+  place-items: center;
+}
+
+.clinical-boundary h2,
+.clinical-boundary p {
+  margin: 0;
+}
+
+.clinical-boundary h2 {
+  font: 700 1rem/1.3 var(--sn-font-display);
+}
+
+.clinical-boundary p {
+  margin-block-start: 0.2rem;
+}
+
+.declaration-panel {
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  margin-block-end: 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--sn-color-status-info-border);
+  border-radius: var(--sn-radius-xl);
+  background:
+    radial-gradient(circle at 100% 0, rgb(216 242 238 / 76%), transparent 35%),
+    var(--sn-color-surface);
+  box-shadow: var(--sn-elevation-1);
+  transition:
+    opacity var(--sn-motion-duration-moderate) var(--sn-motion-ease-enter),
+    transform var(--sn-motion-duration-moderate) var(--sn-motion-ease-enter);
+
+  @starting-style {
+    opacity: 0;
+    transform: translateY(-0.6rem);
+  }
+}
+
+.declaration-intro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  align-items: start;
+  max-inline-size: 50rem;
+}
+
+.declaration-intro h2,
+.declaration-intro p {
+  margin: 0;
+}
+
+.declaration-intro h2 {
+  color: var(--sn-color-text-strong);
+  font: var(--sn-type-heading-md);
+}
+
+.declaration-intro h2 + p {
+  margin-block-start: 0.35rem;
+  color: var(--sn-color-text-muted);
+}
+
+.declaration-icon {
+  display: grid;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 1rem;
+  color: var(--sn-color-primary);
+  background: var(--sn-color-surface-emphasis);
+  place-items: center;
+}
+
+.declaration-panel form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.2rem 1rem;
+  margin-block-start: 1.25rem;
+}
+
+.schedule-field,
+.declaration-actions,
+.mutation-message {
+  grid-column: 1 / -1;
+}
+
+.declaration-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.declaration-actions p {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin: 0;
+  color: var(--sn-color-status-info-text);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.mutation-message {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem 0.9rem;
+  margin: 0.6rem 0 0;
+  border: 1px solid;
+  border-radius: var(--sn-radius-md);
+  font-size: 0.9rem;
+}
+
+.mutation-message--error {
+  border-color: var(--sn-color-status-danger-border);
+  color: var(--sn-color-status-danger-text);
+  background: var(--sn-color-status-danger-surface);
+}
+
+.mutation-message--success {
+  border-color: var(--sn-color-status-success-border);
+  color: var(--sn-color-status-success-text);
+  background: var(--sn-color-status-success-surface);
+}
+
+.medication-panel {
+  padding: clamp(1.1rem, 3vw, 1.6rem);
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-xl);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: var(--sn-elevation-1);
+}
+
+.source-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1.2rem;
+  padding-block: 0.8rem;
+  margin-block-start: 0.8rem;
+  border-block: 1px solid var(--sn-color-border-subtle);
+  color: var(--sn-color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.source-legend span {
+  display: inline-flex;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.source-dot {
+  inline-size: 0.55rem;
+  block-size: 0.55rem;
+  border-radius: 50%;
+  background: var(--sn-color-primary);
+}
+
+.source-dot--patient {
+  background: var(--sn-color-status-info-text);
+  box-shadow: 0 0 0 3px var(--sn-color-status-info-surface);
+}
+
+.medication-list {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0;
+  margin: 1.25rem 0 0;
+  list-style: none;
+}
+
+.medication-list > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.15rem;
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-lg);
+  background: var(--sn-color-surface);
+}
+
+.medication-list > li.medication-item--patient {
+  border-color: var(--sn-color-status-info-border);
+  background: linear-gradient(110deg, var(--sn-color-status-info-surface), #fff 38%);
+}
+
+.medication-icon {
+  display: grid;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.95rem;
+  color: var(--sn-color-primary);
+  background: var(--sn-color-surface-emphasis);
+  place-items: center;
+}
+
+.medication-heading {
+  display: flex;
+  gap: 1rem;
+  align-items: start;
+  justify-content: space-between;
+}
+
+h3,
+.medication-heading p {
+  margin: 0;
+}
+
+h3 {
+  color: var(--sn-color-text-strong);
+  font: 700 1.1rem/1.25 var(--sn-font-display);
+}
+
+.medication-heading p {
+  color: var(--sn-color-text-muted);
+}
+
+dl {
+  display: grid;
+  grid-template-columns: 1.1fr 1.2fr 1fr;
+  gap: 1rem;
+  padding-block-start: 1rem;
+  margin: 1rem 0 0;
+  border-block-start: 1px solid var(--sn-color-border-subtle);
+}
+
+dt {
+  color: var(--sn-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0.2rem 0 0;
+  color: var(--sn-color-text-strong);
+  font-size: 0.88rem;
+}
+
+.medication-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 1rem;
+  align-items: center;
+  min-block-size: 2.4rem;
+  margin-block-start: 0.8rem;
+}
+
+.renewal-confirmation,
+.patient-origin-note,
+.renewal-error {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.renewal-confirmation {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  color: var(--sn-color-status-success-text);
+  font-weight: 700;
+}
+
+.patient-origin-note {
+  color: var(--sn-color-text-muted);
+}
+
+.renewal-error {
+  flex-basis: 100%;
+  color: var(--sn-color-status-danger-text);
+}
+
+.safety-note {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 1rem;
+  margin-block-start: 1rem;
+  border-inline-start: 3px solid var(--sn-color-status-warning-border);
+  border-radius: 0 var(--sn-radius-md) var(--sn-radius-md) 0;
+  color: var(--sn-color-status-warning-text);
+  background: var(--sn-color-status-warning-surface);
+}
+
+.safety-note strong,
+.safety-note span {
+  display: block;
+}
+
+@media (max-width: 48rem) {
+  .medication-header {
+    align-items: start;
+  }
+
+  .clinical-boundary {
+    grid-template-columns: auto 1fr;
+  }
+
+  .clinical-boundary button {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  dl {
+    grid-template-columns: 1fr;
+  }
+
+  .declaration-panel form {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-field,
+  .declaration-actions,
+  .mutation-message {
+    grid-column: auto;
+  }
+
+  .declaration-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .declaration-actions button {
+    inline-size: 100%;
+  }
+
+  .medication-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .declaration-panel {
+    transition: none;
+  }
+}

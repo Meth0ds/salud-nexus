@@ -1,0 +1,280 @@
+@if (screen(); as screen) {
+  @if (family(); as family) {
+    <header class="mockup-heading">
+      <div>
+        <a routerLink="/catalogo"><i aria-hidden="true">arrow_back</i> Volver al catálogo</a>
+        <p>{{ family.label }} · {{ screen.id }}</p>
+        <h1>{{ screen.titulo }}</h1>
+        <span>{{ screen.descripcion }}</span>
+      </div>
+      <div class="mockup-heading__profiles" aria-label="Perfiles de diseño">
+        <sn-status-chip [label]="screen.prioridad" [tone]="priorityTone(screen.prioridad)" />
+        <span>{{ screen.estadoVisual }}</span>
+        <span>{{ screen.responsive }}</span>
+        <span>{{ screen.motion }}</span>
+      </div>
+    </header>
+
+    <section class="frame-wrap" aria-label="Mockup interactivo">
+      <div
+        class="mockup-frame"
+        data-testid="mockup-frame"
+        [attr.data-family]="screen.id[0]"
+        [attr.data-screen-id]="screen.id"
+        [attr.data-responsive]="screen.responsive"
+      >
+        <header class="product-bar">
+          <div class="product-brand">
+            <span class="product-brand__mark" aria-hidden="true">+</span>
+            <span
+              ><strong>Salud Nexus</strong><small>{{ family.label }}</small></span
+            >
+          </div>
+          <div class="context-pill">
+            <sn-icon name="domain" [size]="17" /> Centro Atlántico · Contexto sintético
+          </div>
+          <button type="button" aria-label="Abrir notificaciones">
+            <sn-icon name="notifications" />
+          </button>
+          <span class="avatar" aria-label="Cuenta de demostración">SN</span>
+        </header>
+
+        <div class="product-layout" [class.product-layout--overlay]="screen.id.startsWith('O')">
+          <aside class="product-nav" aria-label="Navegación de ejemplo">
+            @for (item of family.nav; track item.label; let first = $first) {
+              <button type="button" [class.is-active]="first">
+                <sn-icon [name]="item.icon" [size]="19" />
+                <span>{{ item.label }}</span>
+              </button>
+            }
+            <button class="product-nav__help" type="button">
+              <sn-icon name="help" [size]="19" /><span>Ayuda</span>
+            </button>
+          </aside>
+
+          <main class="product-main">
+            <nav class="breadcrumbs" aria-label="Migas de pan">
+              <span>{{ family.label }}</span
+              ><i aria-hidden="true">chevron_right</i><strong>{{ screen.titulo }}</strong>
+            </nav>
+            <div class="page-title">
+              <div>
+                <p>Muestra sintética · {{ screen.id }}</p>
+                <h2>{{ screen.titulo }}</h2>
+                <span>{{ screen.descripcion }}</span>
+              </div>
+              <button class="primary-action" type="button">
+                <sn-icon [name]="family.icon" [size]="18" />{{ family.primaryAction }}
+              </button>
+            </div>
+
+            @if (screen.prioridad === 'critica') {
+              <div class="assurance-banner" role="status">
+                <sn-icon name="verified_user" accessibleLabel="Control reforzado" />
+                <span
+                  ><strong>Control reforzado activo</strong> Esta vista requiere autorización
+                  contextual, step-up y auditoría.</span
+                >
+                <button type="button">Ver controles</button>
+              </div>
+            }
+
+            @if (screen.id === 'G03' || screen.id === 'P12') {
+              <sn-design-mfa-flow-mockup
+                [mode]="screen.id === 'G03' ? 'challenge' : 'enrollment'"
+              />
+            } @else if (screen.id === 'P23' || screen.id === 'P24') {
+              <sn-design-appointment-change-mockup
+                [mode]="screen.id === 'P23' ? 'reschedule' : 'cancel'"
+              />
+            } @else {
+              <div class="metric-grid">
+                @for (metric of family.metrics; track metric; let index = $index) {
+                  <sn-metric-card
+                    [label]="metric"
+                    [value]="index === 0 ? '24' : index === 1 ? '3' : '98 %'"
+                    [trendDirection]="index === 1 ? 'down' : 'up'"
+                    [trendLabel]="index === 1 ? '1 menos que ayer' : 'Dentro del objetivo'"
+                    [tone]="index === 1 ? 'warning' : 'info'"
+                  />
+                }
+              </div>
+
+              <div class="workspace-grid">
+                <sn-shell-card
+                  heading="Vista principal"
+                  [eyebrow]="screen.ruta"
+                  supportingText="Contenido mínimo para la finalidad activa"
+                >
+                  @switch (screen.id[0]) {
+                    @case ('P') {
+                      <div class="care-timeline">
+                        @for (
+                          item of [
+                            'Cita confirmada',
+                            'Medicación revisada',
+                            'Documento disponible',
+                          ];
+                          track item;
+                          let index = $index
+                        ) {
+                          <div>
+                            <span>{{ index + 1 }}</span>
+                            <p>
+                              <strong>{{ item }}</strong
+                              ><small>{{ index + 20 }} mayo · acceso legítimo</small>
+                            </p>
+                            <button type="button">Ver</button>
+                          </div>
+                        }
+                      </div>
+                    }
+                    @case ('C') {
+                      <div class="agenda-board">
+                        @for (
+                          hour of ['09:00', '10:00', '11:00', '12:00'];
+                          track hour;
+                          let index = $index
+                        ) {
+                          <div>
+                            <time>{{ hour }}</time
+                            ><span [class.is-current]="index === 1"
+                              ><strong>{{
+                                index === 1 ? 'Persona seleccionada' : 'Cita programada'
+                              }}</strong
+                              ><small>{{
+                                index === 1 ? 'Seguimiento · en curso' : 'Finalidad asistencial'
+                              }}</small></span
+                            >
+                          </div>
+                        }
+                      </div>
+                    }
+                    @case ('R') {
+                      <div class="queue-list">
+                        @for (
+                          status of [
+                            'Llegada registrada',
+                            'Documentación pendiente',
+                            'Sala asignada',
+                            'Aviso enviado',
+                          ];
+                          track status;
+                          let index = $index
+                        ) {
+                          <div>
+                            <strong>SN-10{{ index + 1 }}</strong
+                            ><span>{{ status }}</span
+                            ><sn-status-chip
+                              [label]="index === 1 ? 'Revisar' : 'Correcto'"
+                              [tone]="index === 1 ? 'warning' : 'success'"
+                            />
+                          </div>
+                        }
+                      </div>
+                    }
+                    @default {
+                      <table>
+                        <thead>
+                          <tr>
+                            <th scope="col">Evento</th>
+                            <th scope="col">Contexto</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Hora</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (
+                            row of [
+                              'Política verificada',
+                              'Acceso autorizado',
+                              'Control ejecutado',
+                              'Evidencia sellada',
+                            ];
+                            track row;
+                            let index = $index
+                          ) {
+                            <tr>
+                              <td>{{ row }}</td>
+                              <td>Ámbito sintético {{ index + 1 }}</td>
+                              <td>
+                                <sn-status-chip
+                                  [label]="index === 2 ? 'Revisar' : 'Válido'"
+                                  [tone]="index === 2 ? 'warning' : 'success'"
+                                />
+                              </td>
+                              <td>09:{{ index }}{{ index + 2 }}</td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    }
+                  }
+                </sn-shell-card>
+
+                <sn-shell-card heading="Contexto y controles" eyebrow="Privacidad por defecto">
+                  <dl class="context-list">
+                    <div>
+                      <dt>Audiencias</dt>
+                      <dd>{{ screen.audiencia.join(', ') }}</dd>
+                    </div>
+                    <div>
+                      <dt>Finalidad activa</dt>
+                      <dd>Operación autorizada de demostración</dd>
+                    </div>
+                    <div>
+                      <dt>Minimización</dt>
+                      <dd>Solo atributos imprescindibles</dd>
+                    </div>
+                    <div>
+                      <dt>Auditoría</dt>
+                      <dd>Acceso y resultado registrados</dd>
+                    </div>
+                  </dl>
+                  <div class="control-actions">
+                    <button type="button">Ver política</button>
+                    <button type="button">Historial de acceso</button>
+                  </div>
+                </sn-shell-card>
+              </div>
+            }
+          </main>
+
+          @if (screen.id.startsWith('O')) {
+            <div class="overlay-dim" aria-hidden="true"></div>
+            <dialog class="secure-dialog" open [attr.aria-labelledby]="screen.id + '-dialog-title'">
+              <span class="dialog-icon"><sn-icon name="shield_lock" [size]="28" /></span>
+              <p>Acción protegida · {{ screen.id }}</p>
+              <h2 [id]="screen.id + '-dialog-title'">{{ screen.titulo }}</h2>
+              <span>{{ screen.descripcion }}</span>
+              <div class="dialog-summary">
+                <strong>Antes de continuar</strong
+                ><small
+                  >Comprueba alcance, finalidad y consecuencias. El resultado quedará
+                  auditado.</small
+                >
+              </div>
+              <div class="dialog-actions">
+                <button type="button">Cancelar</button
+                ><button class="primary-action" type="button">{{ family.primaryAction }}</button>
+              </div>
+            </dialog>
+          }
+        </div>
+      </div>
+    </section>
+
+    <sn-design-mockup-notes
+      [stateProfile]="stateProfile()"
+      [responsiveProfile]="responsiveProfile()"
+      [motionProfile]="motionProfile()"
+    />
+  }
+} @else {
+  <section class="not-found" role="status">
+    <sn-icon name="find_in_page" [size]="40" />
+    <h1>Mockup no encontrado</h1>
+    <p>El identificador solicitado no pertenece al inventario canónico.</p>
+    <a routerLink="/catalogo">Volver al catálogo</a>
+  </section>
+}

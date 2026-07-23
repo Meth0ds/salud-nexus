@@ -1,0 +1,45 @@
+- generic [ref=f2e3]:
+  - link "Saltar al acceso" [ref=f2e4] [cursor=pointer]:
+    - /url: "#login-main"
+  - main [ref=f2e5]:
+    - region [ref=f2e6]:
+      - generic "Salud Nexus" [ref=f2e7]:
+        - generic [ref=f2e11]:
+          - strong [ref=f2e12]: salud
+          - text: nexus
+      - generic [ref=f2e13]:
+        - paragraph [ref=f2e14]: Portal del paciente
+        - heading "Tu atención, reunida con el contexto justo." [level=2] [ref=f2e15]
+        - paragraph [ref=f2e16]: Citas, documentos, medicación comunicada por tu centro y un registro claro de accesos, sin mezclar tareas administrativas con decisiones clínicas.
+    - region [ref=f2e17]:
+      - generic [ref=f2e18]:
+        - generic [ref=f2e19]:
+          - generic [ref=f2e20]: science
+          - text: Entorno de demostración
+        - paragraph [ref=f2e22]: Acceso seguro
+        - heading "Accede a tu espacio de salud" [level=1] [ref=f2e23]
+        - paragraph [ref=f2e24]: Usa las credenciales sintéticas. No se conecta con pacientes, centros ni sistemas reales.
+        - complementary "Credenciales de demostración" [ref=f2e25]:
+          - strong [ref=f2e26]: Credenciales demo
+          - generic [ref=f2e27]: laura.demo@saludnexus.test
+          - generic [ref=f2e28]: NEXUS-2026
+        - generic [ref=f2e29]:
+          - generic [ref=f2e30]:
+            - generic [ref=f2e32]:
+              - generic [ref=f2e33]:
+                - text: Correo electrónico
+                - generic [ref=f2e34]: "*"
+              - textbox "Correo electrónico" [ref=f2e36]
+            - generic [ref=f2e37]: Cuenta sintética de esta demostración
+          - generic [ref=f2e41]:
+            - generic [ref=f2e43]:
+              - generic [ref=f2e44]:
+                - text: Código de acceso
+                - generic [ref=f2e45]: "*"
+              - textbox "Código de acceso" [ref=f2e47]
+            - generic [ref=f2e48]: Puedes pegar el código; no se almacena
+          - button [ref=f2e52]:
+            - generic [ref=f2e53]:
+              - text: Entrar en la demostración
+              - generic [ref=f2e54]: arrow_forward
+        - paragraph [ref=f2e58]: En producción, el acceso se delegará en un proveedor de identidad y la autorización se verificará de nuevo en el servidor.

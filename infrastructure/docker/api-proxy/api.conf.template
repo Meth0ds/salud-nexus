@@ -1,0 +1,73 @@
+map $http_x_request_id $salud_nexus_request_id {
+    default $http_x_request_id;
+    ""      $request_id;
+}
+
+server {
+    listen 8080 default_server;
+    listen [::]:8080 default_server;
+    server_name _;
+
+    root /srv/app/public;
+    index index.php;
+
+    server_tokens off;
+    access_log off;
+    error_log /dev/stderr warn;
+
+    client_max_body_size 1m;
+    client_body_timeout 15s;
+    client_header_timeout 15s;
+    keepalive_timeout 15s;
+    send_timeout 30s;
+
+    add_header Cache-Control "no-store, private" always;
+    add_header Content-Security-Policy "default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'" always;
+    add_header Cross-Origin-Resource-Policy "same-site" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+    add_header Pragma "no-cache" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /index.php {
+        include fastcgi_params;
+        fastcgi_pass api:9000;
+        fastcgi_connect_timeout 5s;
+        fastcgi_read_timeout 30s;
+        fastcgi_send_timeout 30s;
+        fastcgi_buffering off;
+
+        fastcgi_param SCRIPT_FILENAME /srv/app/public/index.php;
+        fastcgi_param SCRIPT_NAME /index.php;
+        fastcgi_param DOCUMENT_ROOT /srv/app/public;
+        fastcgi_param HTTP_PROXY "";
+        fastcgi_param HTTP_X_REQUEST_ID $salud_nexus_request_id;
+        fastcgi_param HTTP_X_FORWARDED_FOR $remote_addr;
+        fastcgi_param HTTP_X_FORWARDED_HOST $host;
+        fastcgi_param HTTP_X_FORWARDED_PORT $server_port;
+        fastcgi_param HTTP_X_FORWARDED_PROTO ${FORWARDED_PROTO};
+
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_hide_header Cache-Control;
+        fastcgi_hide_header Content-Security-Policy;
+        fastcgi_hide_header Cross-Origin-Resource-Policy;
+        fastcgi_hide_header Permissions-Policy;
+        fastcgi_hide_header Pragma;
+        fastcgi_hide_header Referrer-Policy;
+        fastcgi_hide_header X-Content-Type-Options;
+        fastcgi_hide_header X-Frame-Options;
+    }
+
+    location ~ \.php$ {
+        return 404;
+    }
+
+    location ~ /\. {
+        deny all;
+    }
+}

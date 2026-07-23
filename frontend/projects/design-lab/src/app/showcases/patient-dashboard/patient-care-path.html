@@ -1,0 +1,28 @@
+<section class="care-path" aria-labelledby="care-path-title">
+  <div class="section-heading">
+    <div>
+      <p class="eyebrow">Hilo de cuidados</p>
+      <h2 id="care-path-title">Tu próximo paso, sin perder el contexto</h2>
+    </div>
+    <button matButton="text" type="button">
+      Ver recorrido completo
+      <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+    </button>
+  </div>
+  <ol class="milestones">
+    @for (milestone of milestones; track milestone.id) {
+      <li
+        class="milestone"
+        [class.milestone--current]="milestone.state === 'current'"
+        [class.milestone--complete]="milestone.state === 'complete'"
+      >
+        <div class="milestone-icon">
+          <mat-icon aria-hidden="true">{{ milestone.icon }}</mat-icon>
+        </div>
+        <time>{{ milestone.date }}</time>
+        <strong>{{ milestone.label }}</strong>
+        <span>{{ milestone.detail }}</span>
+      </li>
+    }
+  </ol>
+</section>

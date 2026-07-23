@@ -1,0 +1,71 @@
+<section class="metric-grid" aria-label="Indicadores de seguridad sintéticos">
+  <article class="risk-card">
+    <div class="metric-heading">
+      <span>Riesgo activo</span><mat-icon aria-hidden="true">radar</mat-icon>
+    </div>
+    <div class="risk-content">
+      <div class="risk-ring" role="img" aria-label="Riesgo activo bajo, 18 sobre 100">
+        <span><strong>18</strong><small>/100</small></span>
+      </div>
+      <div>
+        <strong>Bajo y estable</strong>
+        <p>–4 puntos desde la última ventana</p>
+      </div>
+    </div>
+  </article>
+  <article>
+    <div class="metric-heading">
+      <span>Revisión prioritaria</span><mat-icon aria-hidden="true">report</mat-icon>
+    </div>
+    <strong class="metric-value metric-value--critical">1</strong>
+    <p>Acceso excepcional bloqueado</p>
+    <span class="metric-trend">Requiere revisión humana</span>
+  </article>
+  <article>
+    <div class="metric-heading">
+      <span>Sesiones protegidas</span><mat-icon aria-hidden="true">passkey</mat-icon>
+    </div>
+    <strong class="metric-value">99,98<small>%</small></strong>
+    <p>MFA o credencial resistente al phishing</p>
+    <span class="metric-trend metric-trend--good"
+      ><mat-icon aria-hidden="true">trending_up</mat-icon> +0,12 %</span
+    >
+  </article>
+  <article>
+    <div class="metric-heading">
+      <span>Eventos verificados</span><mat-icon aria-hidden="true">verified</mat-icon>
+    </div>
+    <strong class="metric-value">8,4<small>k</small></strong>
+    <p>Últimas 24 horas · cadena íntegra</p>
+    <span class="metric-trend metric-trend--good"
+      ><mat-icon aria-hidden="true">check_circle</mat-icon> Sin discontinuidades</span
+    >
+  </article>
+</section>
+
+<section class="integrity-chain" aria-labelledby="chain-title">
+  <div class="chain-heading">
+    <div>
+      <p class="eyebrow">Firma del sistema</p>
+      <h2 id="chain-title">Cadena de integridad</h2>
+    </div>
+    <span><i aria-hidden="true"></i> Verificación continua</span>
+  </div>
+  <ol>
+    <li>
+      <span class="block-icon"><mat-icon aria-hidden="true">fingerprint</mat-icon></span>
+      <div><small>Bloque anterior</small><strong>#00084289</strong><code>93ac…12f0</code></div>
+    </li>
+    <li class="chain-link" aria-hidden="true"><i></i><mat-icon>link</mat-icon><i></i></li>
+    <li>
+      <span class="block-icon"><mat-icon aria-hidden="true">fingerprint</mat-icon></span>
+      <div><small>Bloque verificado</small><strong>#00084290</strong><code>de40…a83e</code></div>
+    </li>
+    <li class="chain-link" aria-hidden="true"><i></i><mat-icon>link</mat-icon><i></i></li>
+    <li class="chain-current">
+      <span class="block-icon"><mat-icon aria-hidden="true">encrypted</mat-icon></span>
+      <div><small>Bloque actual</small><strong>#00084291</strong><code>7f3a…b19c</code></div>
+      <em>Íntegro</em>
+    </li>
+  </ol>
+</section>

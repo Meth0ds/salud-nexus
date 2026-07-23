@@ -1,0 +1,117 @@
+<section class="clinician-showcase" aria-labelledby="clinician-title">
+  <p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+
+  <aside class="rail">
+    <a
+      class="rail-brand"
+      href="#clinician-title"
+      aria-label="Salud Nexus profesionales, ir al contenido"
+    >
+      <span aria-hidden="true"><i></i><i></i></span><strong>nexus</strong>
+    </a>
+    <nav aria-label="Navegación profesional">
+      @for (item of navigationItems; track item.label) {
+        <button
+          class="rail-item"
+          [class.rail-item--active]="activeNavigation() === item.label"
+          [attr.aria-current]="activeNavigation() === item.label ? 'page' : null"
+          type="button"
+          (click)="selectNavigation(item.label)"
+        >
+          <mat-icon aria-hidden="true">{{ item.icon }}</mat-icon
+          ><span>{{ item.label }}</span>
+          @if (item.label === 'Bandeja') {
+            <em aria-label="3 elementos pendientes">3</em>
+          }
+        </button>
+      }
+    </nav>
+    <div class="rail-footer">
+      <button type="button" aria-label="Abrir ajustes">
+        <mat-icon aria-hidden="true">settings</mat-icon>
+      </button>
+      <button
+        class="professional-avatar"
+        type="button"
+        aria-label="Abrir perfil profesional de demostración"
+      >
+        EV
+      </button>
+    </div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar">
+      <div class="context-title">
+        <p>Centro Atlántico <span aria-hidden="true">/</span> Medicina general</p>
+        <strong>Espacio profesional</strong>
+      </div>
+      <div class="topbar-actions">
+        <span class="demo-pill"
+          ><mat-icon aria-hidden="true">science</mat-icon> Entorno de demostración</span
+        >
+        <button class="icon-button" type="button" aria-label="Abrir búsqueda">
+          <mat-icon aria-hidden="true">search</mat-icon>
+        </button>
+        <button
+          class="icon-button notification-button"
+          type="button"
+          aria-label="Abrir notificaciones, 2 nuevas"
+        >
+          <mat-icon aria-hidden="true">notifications</mat-icon><span aria-hidden="true">2</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="main-content" id="clinician-title" tabindex="-1">
+      <header class="page-heading reveal">
+        <div>
+          <p class="eyebrow">Domingo · 19 julio</p>
+          <h1>Agenda clínica</h1>
+          <p><strong>4 citas</strong> · 1 paciente en espera · Todos los datos son ficticios</p>
+        </div>
+        <div class="heading-actions">
+          <div class="view-switch" role="group" aria-label="Escala de la agenda">
+            @for (view of views; track view) {
+              <button
+                type="button"
+                [class.view-switch__active]="activeView() === view"
+                [attr.aria-pressed]="activeView() === view"
+                (click)="setView(view)"
+              >
+                {{ view }}
+              </button>
+            }
+          </div>
+          <button matButton="filled" type="button">
+            <mat-icon aria-hidden="true">add</mat-icon> Nueva cita
+          </button>
+        </div>
+      </header>
+
+      <section
+        class="operational-strip reveal reveal--second"
+        aria-label="Resumen operativo de la jornada"
+      >
+        <div>
+          <span class="status-dot status-dot--ready"></span><strong>4</strong
+          ><span>confirmadas</span>
+        </div>
+        <div>
+          <span class="status-dot status-dot--waiting"></span><strong>1</strong
+          ><span>en espera</span>
+        </div>
+        <div>
+          <span class="status-dot status-dot--remote"></span><strong>1</strong
+          ><span>teleconsulta</span>
+        </div>
+        <div class="capacity">
+          <span>Ocupación</span><strong>72 %</strong
+          ><span class="capacity-track" aria-hidden="true"><i></i></span>
+        </div>
+      </section>
+
+      <sn-design-clinician-agenda-board />
+    </main>
+  </div>
+</section>

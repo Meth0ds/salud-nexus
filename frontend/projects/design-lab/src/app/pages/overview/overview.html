@@ -1,0 +1,128 @@
+<section class="hero">
+  <div class="hero__content">
+    <p class="eyebrow">Sistema de experiencia · v0.1</p>
+    <h1>Confianza clínica,<br /><span>hecha interfaz.</span></h1>
+    <p class="lede">
+      Un lenguaje visual profesional para gestionar salud con claridad, trazabilidad y calma. Cada
+      decisión parte de privacidad por defecto y accesibilidad WCAG 2.2 AA.
+    </p>
+    <div class="hero__actions">
+      <a class="button button--primary" routerLink="/catalogo">
+        Explorar todos los mockups <i aria-hidden="true">arrow_forward</i>
+      </a>
+      <a class="button button--quiet" href="#direccion-visual">Ver dirección visual</a>
+    </div>
+    <dl class="hero__metrics" aria-label="Cobertura del laboratorio de diseño">
+      <div>
+        <dt>3</dt>
+        <dd>superficies insignia</dd>
+      </div>
+      <div>
+        <dt>100%</dt>
+        <dd>rutas inventariadas</dd>
+      </div>
+      <div>
+        <dt>AA</dt>
+        <dd>objetivo WCAG 2.2</dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="hero__art" aria-hidden="true">
+    <div class="orb orb--one"></div>
+    <div class="orb orb--two"></div>
+    <div class="care-line">
+      <span class="care-line__node">calendar_month</span>
+      <span class="care-line__node">pill</span>
+      <span class="care-line__node">description</span>
+    </div>
+    <div class="glass-card glass-card--primary">
+      <span class="glass-card__label">Próxima cita</span>
+      <strong>21 mayo · 10:30</strong>
+      <small>Medicina interna · Consulta 12B</small>
+    </div>
+    <div class="glass-card glass-card--secondary">
+      <i aria-hidden="true">verified</i>
+      <span><strong>Acceso legítimo</strong><small>Finalidad asistencial verificada</small></span>
+    </div>
+  </div>
+</section>
+
+<section class="showcase-section" aria-labelledby="experiencias-title">
+  <div class="section-heading" snScrollReveal>
+    <p class="eyebrow">Tres ritmos, un solo sistema</p>
+    <h2 id="experiencias-title">Experiencias insignia</h2>
+    <p>
+      La misma base de confianza se adapta al contexto y a la carga cognitiva de cada audiencia.
+    </p>
+  </div>
+
+  <div class="showcase-grid">
+    @for (showcase of showcases; track showcase.id; let index = $index) {
+      <a
+        class="showcase-card"
+        data-testid="showcase-card"
+        [routerLink]="showcase.route"
+        snScrollReveal
+        [snScrollRevealDelay]="index * 0.06"
+      >
+        <span class="showcase-card__number">{{ showcase.id }}</span>
+        <i class="showcase-card__icon" aria-hidden="true">{{ showcase.icon }}</i>
+        <p>{{ showcase.audience }}</p>
+        <h3>{{ showcase.title }}</h3>
+        <span>{{ showcase.description }}</span>
+        <strong>Ver prototipo <i aria-hidden="true">north_east</i></strong>
+      </a>
+    }
+  </div>
+</section>
+
+<section id="direccion-visual" class="direction" aria-labelledby="direction-title">
+  <div class="direction__copy" snScrollReveal>
+    <p class="eyebrow">Dirección visual Atlántico</p>
+    <h2 id="direction-title">Serena en la forma.<br />Rigurosa en el fondo.</h2>
+    <p>
+      Azul atlántico para confianza, teal para acciones seguras y coral reservado a aquello que
+      exige atención. Capas blancas, bordes precisos y una línea de cuidados conectan el recorrido.
+    </p>
+    <ul>
+      <li>
+        <i aria-hidden="true">check_circle</i> Material 3 como infraestructura, no como estética
+        genérica
+      </li>
+      <li>
+        <i aria-hidden="true">check_circle</i> Tipografía Manrope + Source Sans 3, alojada
+        localmente
+      </li>
+      <li>
+        <i aria-hidden="true">check_circle</i> Iconografía redondeada y estados comprensibles sin
+        color
+      </li>
+    </ul>
+  </div>
+  <figure snScrollReveal [snScrollRevealDistance]="32">
+    <img
+      src="design-board.png"
+      alt="Tablero visual de Salud Nexus con portales de paciente, profesional y seguridad"
+      width="1536"
+      height="1024"
+    />
+    <figcaption>Tablero maestro que guía tokens, componentes y densidad.</figcaption>
+  </figure>
+</section>
+
+<section class="principles" aria-labelledby="principles-title">
+  <div class="section-heading" snScrollReveal>
+    <p class="eyebrow">Criterios no negociables</p>
+    <h2 id="principles-title">Diseñado para situaciones reales</h2>
+  </div>
+  <div class="principles__grid">
+    @for (principle of principles; track principle.title; let index = $index) {
+      <article snScrollReveal [snScrollRevealDelay]="index * 0.05">
+        <i aria-hidden="true">{{ principle.icon }}</i>
+        <h3>{{ principle.title }}</h3>
+        <p>{{ principle.text }}</p>
+      </article>
+    }
+  </div>
+</section>

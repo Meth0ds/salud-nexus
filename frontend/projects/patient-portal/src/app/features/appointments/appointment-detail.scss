@@ -1,0 +1,206 @@
+:host {
+  display: block;
+}
+
+.detail-page {
+  max-inline-size: 75rem;
+}
+
+.back-link {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  margin-block-end: 1.5rem;
+  color: var(--sn-color-primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.detail-header,
+.detail-panel,
+.preparation-panel {
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-xl);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: var(--sn-elevation-1);
+}
+
+.detail-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 1.2rem;
+  align-items: center;
+  padding: 1.4rem;
+}
+
+.detail-header h1,
+.detail-header p {
+  margin-block-start: 0;
+}
+
+.detail-header h1 {
+  margin-block-end: 0.35rem;
+  color: var(--sn-color-text-strong);
+  font: 740 var(--sn-type-heading-md) / 1.1 var(--sn-font-display);
+  letter-spacing: -0.035em;
+}
+
+.detail-header div > p:last-child {
+  margin-block-end: 0;
+  color: var(--sn-color-text-muted);
+}
+
+.date-tile {
+  display: grid;
+  inline-size: 4.8rem;
+  block-size: 6.2rem;
+  align-content: center;
+  border-radius: var(--sn-radius-lg);
+  color: #fff;
+  background: var(--sn-color-primary-pressed);
+  text-align: center;
+}
+
+.date-tile span,
+.date-tile small {
+  font: 750 0.65rem/1.2 var(--sn-font-display);
+  letter-spacing: 0.13em;
+}
+
+.date-tile strong {
+  font: 740 2.3rem/1 var(--sn-font-display);
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 1.15rem;
+  align-items: start;
+  margin-block-start: 1.15rem;
+}
+
+.detail-panel,
+.preparation-panel {
+  padding: 1.35rem;
+}
+
+.detail-panel dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  margin: 1rem 0 0;
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-lg);
+  overflow: hidden;
+}
+
+.detail-panel dl > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.7rem;
+  padding: 1rem;
+  border-block-end: 1px solid var(--sn-color-border-subtle);
+}
+
+.detail-panel dl > div:nth-child(odd) {
+  border-inline-end: 1px solid var(--sn-color-border-subtle);
+}
+
+.detail-panel dl span {
+  grid-row: 1 / 3;
+  color: var(--sn-color-primary);
+}
+
+dt {
+  color: var(--sn-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0.15rem 0 0;
+  color: var(--sn-color-text-strong);
+}
+
+.preparation-icon {
+  display: grid;
+  inline-size: 3.2rem;
+  block-size: 3.2rem;
+  margin-block-end: 1.15rem;
+  border-radius: 1rem;
+  color: var(--sn-color-primary);
+  background: var(--sn-color-surface-emphasis);
+  place-items: center;
+}
+
+.preparation-panel h2 {
+  margin: 0;
+  color: var(--sn-color-text-strong);
+  font: 700 var(--sn-type-heading-sm) / 1.25 var(--sn-font-display);
+}
+
+.preparation-panel ul {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+
+.preparation-panel li {
+  display: flex;
+  gap: 0.55rem;
+  align-items: flex-start;
+  color: var(--sn-color-text-muted);
+}
+
+.preparation-panel li sn-icon {
+  flex: 0 0 auto;
+  color: var(--sn-color-status-success-text);
+}
+
+.preparation-panel aside {
+  padding: 0.8rem;
+  border-inline-start: 3px solid var(--sn-color-status-warning-border);
+  color: var(--sn-color-status-warning-text);
+  background: var(--sn-color-status-warning-surface);
+  font-size: 0.85rem;
+}
+
+.change-policy-note {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  padding: 0.75rem;
+  margin: 1rem 0 0;
+  border-inline-start: 3px solid var(--sn-color-status-warning-border);
+  color: var(--sn-color-status-warning-text);
+  background: var(--sn-color-status-warning-surface);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 54rem) {
+  .detail-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 40rem) {
+  .detail-header {
+    grid-template-columns: auto 1fr;
+  }
+
+  .detail-header sn-status-chip {
+    grid-column: 2;
+    justify-self: start;
+  }
+
+  .detail-panel dl {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-panel dl > div:nth-child(odd) {
+    border-inline-end: 0;
+  }
+}

@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+section {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.2rem;
+  max-inline-size: 52rem;
+  padding: clamp(1.25rem, 4vw, 2.25rem);
+  margin-inline: auto;
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-xl);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: var(--sn-elevation-1);
+}
+
+.eligibility-icon {
+  display: grid;
+  inline-size: 4rem;
+  block-size: 4rem;
+  border-radius: 50%;
+  color: var(--sn-color-status-warning-text);
+  background: var(--sn-color-status-warning-surface);
+  place-items: center;
+}
+
+h2 {
+  margin: 0;
+  color: var(--sn-color-text-strong);
+  font: 730 var(--sn-type-heading-md) / 1.15 var(--sn-font-display);
+}
+
+div > p:not(.sn-eyebrow, .deadline-note) {
+  color: var(--sn-color-text-muted);
+}
+
+.deadline-note {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.7rem;
+  border-inline-start: 3px solid var(--sn-color-status-warning-border);
+  color: var(--sn-color-status-warning-text);
+  background: var(--sn-color-status-warning-surface);
+}
+
+@media (max-width: 44rem) {
+  section {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (forced-colors: active) {
+  section {
+    border-color: CanvasText;
+  }
+}

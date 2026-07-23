@@ -1,0 +1,32 @@
+<section class="design-notes" aria-labelledby="design-notes-title">
+  <div>
+    <p>Especificación del mockup</p>
+    <h2 id="design-notes-title">Estados, adaptación y movimiento</h2>
+  </div>
+  @if (stateProfile(); as state) {
+    <article>
+      <span>{{ state.id }}</span>
+      <h3>{{ state.nombre }}</h3>
+      <ul>
+        @for (variant of state.variantes; track variant) {
+          <li>{{ variant }}</li>
+        }
+      </ul>
+    </article>
+  }
+  @if (responsiveProfile(); as responsive) {
+    <article>
+      <span>{{ responsive.id }}</span>
+      <h3>{{ responsive.nombre }}</h3>
+      <p>{{ responsive.comportamiento }}</p>
+    </article>
+  }
+  @if (motionProfile(); as motion) {
+    <article>
+      <span>{{ motion.id }}</span>
+      <h3>{{ motion.nombre }}</h3>
+      <p>{{ motion.comportamiento }}</p>
+      <small>Reducido: {{ motion.movimientoReducido }}</small>
+    </article>
+  }
+</section>

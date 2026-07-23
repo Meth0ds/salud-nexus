@@ -1,0 +1,133 @@
+<div class="sn-patient-page">
+  <header class="sn-page-header">
+    <div>
+      <p class="sn-eyebrow">Agenda personal</p>
+      <h1>Mis citas</h1>
+      <p>Consulta lo confirmado por el centro y prepara cada visita con tiempo.</p>
+    </div>
+    <a matButton="filled" routerLink="/citas/reservar">
+      <sn-icon name="add" [size]="20" /> Pedir una cita
+    </a>
+  </header>
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Cargando tus citas"
+          description="Consultamos la agenda sintética de esta demostración."
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="Aún no tienes citas"
+          description="Cuando el centro confirme una cita, aparecerá en este espacio."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudieron cargar tus citas"
+          description="Inténtalo de nuevo dentro de unos minutos."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="No puedes consultar esta agenda"
+          description="El centro debe validar tu relación con este perfil antes de mostrar citas."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        <div class="appointments-layout sn-reveal">
+          <section aria-labelledby="upcoming-title">
+            <div class="sn-section-heading">
+              <div>
+                <p class="sn-eyebrow">Confirmadas</p>
+                <h2 id="upcoming-title">Próximas citas</h2>
+              </div>
+              <sn-status-chip [label]="upcoming().length + ' próxima'" tone="info" />
+            </div>
+            <div class="appointment-list">
+              @for (appointment of upcoming(); track appointment.id) {
+                <article
+                  class="appointment-card"
+                  [attr.aria-labelledby]="appointment.id + '-title'"
+                >
+                  <div class="date-tile" aria-hidden="true">
+                    <span>JUL</span><strong>23</strong><small>JUE</small>
+                  </div>
+                  <div class="appointment-copy">
+                    <div class="appointment-heading">
+                      <div>
+                        <h3 [id]="appointment.id + '-title'">{{ appointment.title }}</h3>
+                        <p>{{ appointment.professional }} · {{ appointment.specialty }}</p>
+                      </div>
+                      <sn-status-chip label="Confirmada" tone="success" />
+                    </div>
+                    <dl>
+                      <div>
+                        <dt>Cuándo</dt>
+                        <dd>{{ appointment.dateLabel }} · {{ appointment.timeLabel }}</dd>
+                      </div>
+                      <div>
+                        <dt>Dónde</dt>
+                        <dd>{{ appointment.centre }} · {{ appointment.room }}</dd>
+                      </div>
+                      <div>
+                        <dt>Modalidad</dt>
+                        <dd>
+                          {{
+                            appointment.attendanceMode === 'video' ? 'Videoconsulta' : 'Presencial'
+                          }}
+                        </dd>
+                      </div>
+                    </dl>
+                    <div class="sn-action-row">
+                      <button matButton="filled" type="button" (click)="openDetails(appointment)">
+                        Ver detalles
+                      </button>
+                      <a matButton="outlined" routerLink="/citas/reservar">Pedir otra cita</a>
+                    </div>
+                  </div>
+                </article>
+              }
+            </div>
+          </section>
+
+          <section class="history-panel" aria-labelledby="history-title">
+            <div>
+              <p class="sn-eyebrow">Actividad anterior</p>
+              <h2 id="history-title">Historial</h2>
+            </div>
+            <ul>
+              @for (appointment of history(); track appointment.id) {
+                <li>
+                  <span class="history-icon"><sn-icon name="history" [size]="20" /></span>
+                  <div>
+                    <strong>{{ appointment.title }}</strong>
+                    <span>{{ appointment.dateLabel }} · {{ appointment.centre }}</span>
+                  </div>
+                  <button
+                    matButton="text"
+                    type="button"
+                    [attr.aria-label]="'Ver detalle de ' + appointment.title"
+                    (click)="openDetails(appointment)"
+                  >
+                    Ver
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        </div>
+      }
+    }
+  }
+</div>

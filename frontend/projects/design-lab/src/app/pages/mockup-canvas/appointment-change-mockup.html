@@ -1,0 +1,91 @@
+<section
+  class="appointment-change-mockup"
+  data-testid="appointment-change-mockup"
+  [class.appointment-change-mockup--cancellation]="mode() === 'cancel'"
+  aria-labelledby="appointment-change-heading"
+>
+  <div class="change-assurance">
+    <span aria-hidden="true"><sn-icon name="shield_lock" [size]="21" /></span>
+    <div>
+      <strong>Tu cita sigue reservada</strong>
+      <small>No liberaremos el hueco actual hasta completar la operación.</small>
+    </div>
+    <sn-status-chip label="Protegida" tone="success" />
+  </div>
+
+  <div class="continuity-grid">
+    <article class="continuity-card continuity-card--current">
+      <p>Cita actual</p>
+      <div class="continuity-date" aria-hidden="true">
+        <span>JUL</span><strong>30</strong><small>JUE</small>
+      </div>
+      <div>
+        <h3 id="appointment-change-heading">Medicina interna</h3>
+        <dl>
+          <div>
+            <dt>Hora</dt>
+            <dd>09:00–09:30</dd>
+          </div>
+          <div>
+            <dt>Centro</dt>
+            <dd>Centro Atlántico</dd>
+          </div>
+          <div>
+            <dt>Ubicación</dt>
+            <dd>Consulta 2.14</dd>
+          </div>
+        </dl>
+      </div>
+      <small class="policy-deadline">Cambios disponibles hasta las 07:00</small>
+    </article>
+
+    <div class="continuity-link" aria-hidden="true">
+      <span></span><sn-icon [name]="mode() === 'reschedule' ? 'arrow_forward' : 'close'" />
+    </div>
+
+    @if (mode() === 'reschedule') {
+      <article class="continuity-card continuity-card--proposal">
+        <p>Nuevo hueco propuesto</p>
+        <h3>Elige otra hora del mismo servicio</h3>
+        <div class="slot-options" aria-label="Horas alternativas">
+          <button type="button"><strong>Vie 31 jul</strong><span>11:30–12:00</span></button>
+          <button type="button"><strong>Lun 3 ago</strong><span>08:30–09:00</span></button>
+          <button type="button"><strong>Mar 4 ago</strong><span>16:00–16:30</span></button>
+        </div>
+        <small>Mismo centro, servicio y modalidad presencial.</small>
+      </article>
+    } @else {
+      <article class="continuity-card continuity-card--consequence">
+        <p>Consecuencias</p>
+        <h3>Cancelar libera este hueco</h3>
+        <span>La cita pasará al historial y ya no podrás recuperarla desde el portal.</span>
+        <fieldset>
+          <legend>Motivo administrativo</legend>
+          <label><input type="radio" name="cancel-reason" /> Cambio de planes</label>
+          <label><input type="radio" name="cancel-reason" /> Problema de transporte</label>
+          <label><input type="radio" name="cancel-reason" /> Otro motivo no clínico</label>
+        </fieldset>
+        <button class="change-alternative" type="button">Prefiero cambiar la cita</button>
+      </article>
+    }
+  </div>
+
+  <footer class="change-confirmation">
+    <p>
+      <strong>{{
+        mode() === 'reschedule' ? 'Revisa antes de confirmar' : 'Acción irreversible'
+      }}</strong>
+      <span>{{
+        mode() === 'reschedule'
+          ? 'La cita actual se conserva si el nuevo hueco deja de estar disponible.'
+          : 'El centro registrará la cancelación y su motivo.'
+      }}</span>
+    </p>
+    <div>
+      <button type="button">Volver</button>
+      <button class="primary-action" type="button">
+        {{ mode() === 'reschedule' ? 'Confirmar cambio' : 'Cancelar cita' }}
+      </button>
+    </div>
+  </footer>
+</section>

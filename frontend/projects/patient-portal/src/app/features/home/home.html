@@ -1,0 +1,190 @@
+<div class="sn-patient-page">
+  <header class="sn-page-header home-header">
+    <div>
+      <p class="sn-eyebrow">Domingo, 19 de julio</p>
+      <h1>Buenos días, Laura</h1>
+      <p>Esto es lo importante para preparar tu atención esta semana.</p>
+    </div>
+    <a matButton="filled" routerLink="/citas/reservar">
+      <sn-icon name="add" [size]="20" /> Pedir una cita
+    </a>
+  </header>
+
+  <aside class="privacy-note" aria-label="Información de privacidad y demostración">
+    <span class="privacy-note__icon" aria-hidden="true">
+      <sn-icon name="shield_lock" [size]="22" />
+    </span>
+    <div>
+      <strong>Datos totalmente sintéticos</strong>
+      <p>
+        Solo mostramos lo necesario para cada tarea. Esta demo no contiene información de pacientes
+        reales.
+      </p>
+    </div>
+    <a routerLink="/privacidad">Revisar accesos</a>
+  </aside>
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Preparando tu resumen"
+          description="Reunimos las citas, documentos y avisos de esta demostración."
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="Tu resumen está al día"
+          description="Cuando el centro publique una cita o un documento, aparecerá aquí."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudo preparar el resumen"
+          description="Inténtalo de nuevo. Si continúa, facilita la referencia al equipo de soporte."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="Este resumen no está disponible"
+          description="Tu perfil no tiene permiso para ver este contenido. El centro puede orientarte."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        <section class="care-path sn-reveal" aria-labelledby="care-path-title">
+          <div class="sn-section-heading">
+            <div>
+              <p class="sn-eyebrow">Hilo de cuidados</p>
+              <h2 id="care-path-title">Tu próximo paso, sin perder el contexto</h2>
+            </div>
+            <a matButton="text" routerLink="/citas">
+              Ver recorrido completo <sn-icon name="arrow_forward" [size]="18" />
+            </a>
+          </div>
+          <ol class="milestones">
+            <li class="milestone milestone--complete">
+              <span class="milestone-icon"><sn-icon name="task_alt" [size]="19" /></span>
+              <time datetime="2026-07-19T09:10:00+02:00">Hoy · 09:10</time>
+              <strong>Solicitud revisada</strong>
+              <span>El centro confirmó tu petición.</span>
+            </li>
+            <li class="milestone milestone--current">
+              <span class="milestone-icon"><sn-icon name="fact_check" [size]="19" /></span>
+              <time datetime="2026-07-22">Antes del jueves</time>
+              <strong>Preparación</strong>
+              <span>Revisa las indicaciones del centro.</span>
+            </li>
+            <li class="milestone">
+              <span class="milestone-icon"><sn-icon name="clinical_notes" [size]="19" /></span>
+              <time datetime="2026-07-23T10:30:00+02:00">Jue 23 · 10:30</time>
+              <strong>Próxima cita</strong>
+              <span>Centro Atlántico · consulta 2.14</span>
+            </li>
+            <li class="milestone">
+              <span class="milestone-icon"><sn-icon name="event_available" [size]="19" /></span>
+              <span>Después de la cita</span>
+              <strong>Seguimiento</strong>
+              <span>Recibirás aquí los siguientes pasos.</span>
+            </li>
+          </ol>
+        </section>
+
+        <div class="summary-grid sn-reveal sn-reveal--second">
+          @if (state.data.nextAppointment; as appointment) {
+            <article class="appointment-card" aria-labelledby="next-appointment-title">
+              <p class="card-kicker"><sn-icon name="calendar_today" [size]="18" /> Próxima cita</p>
+              <div class="appointment-date" aria-hidden="true">
+                <span>JUL</span><strong>23</strong><small>JUE</small>
+              </div>
+              <div>
+                <h2 id="next-appointment-title">{{ appointment.title }}</h2>
+                <p>{{ appointment.timeLabel }} · {{ appointment.timezone }}</p>
+                <p>{{ appointment.centre }} · {{ appointment.room }}</p>
+                <div class="sn-action-row">
+                  <a matButton="filled" routerLink="/citas">Ver detalles</a>
+                  <a matButton="outlined" routerLink="/citas/reservar">Pedir otra cita</a>
+                </div>
+              </div>
+            </article>
+          }
+
+          <article class="summary-card" aria-labelledby="medication-summary-title">
+            <div class="sn-section-heading">
+              <div>
+                <p class="sn-eyebrow">Información del centro</p>
+                <h2 id="medication-summary-title">Medicación comunicada</h2>
+              </div>
+              <a routerLink="/medicacion">Ver todo</a>
+            </div>
+            <ul class="compact-list">
+              @for (item of state.data.medication; track item.id) {
+                <li>
+                  <span class="list-icon"><sn-icon name="pill" [size]="20" /></span>
+                  <div>
+                    <strong>{{ item.name }} {{ item.presentation }}</strong
+                    ><span>{{ item.scheduleLabel }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </article>
+
+          <article class="summary-card" aria-labelledby="documents-summary-title">
+            <div class="sn-section-heading">
+              <div>
+                <p class="sn-eyebrow">Novedades</p>
+                <h2 id="documents-summary-title">Documentos recientes</h2>
+              </div>
+              <a routerLink="/documentos">Ver todos</a>
+            </div>
+            <ul class="compact-list">
+              @for (document of state.data.recentDocuments; track document.id) {
+                <li>
+                  <span class="list-icon list-icon--document"
+                    ><sn-icon name="description" [size]="20"
+                  /></span>
+                  <div>
+                    <strong>{{ document.title }}</strong
+                    ><span>{{ document.dateLabel }} · {{ document.format }}</span>
+                  </div>
+                </li>
+              }
+            </ul>
+          </article>
+
+          <article class="summary-card" aria-labelledby="access-summary-title">
+            <div class="sn-section-heading">
+              <div>
+                <p class="sn-eyebrow">Transparencia</p>
+                <h2 id="access-summary-title">Accesos recientes</h2>
+              </div>
+              <a routerLink="/privacidad">Ver historial</a>
+            </div>
+            <ul class="compact-list">
+              @for (access of state.data.recentAccesses; track access.id) {
+                <li>
+                  <span class="list-icon list-icon--access"
+                    ><sn-icon name="visibility" [size]="20"
+                  /></span>
+                  <div>
+                    <strong>{{ access.actorLabel }}</strong
+                    ><span>{{ access.dateLabel }}</span>
+                  </div>
+                  <sn-status-chip label="Legítimo" tone="success" />
+                </li>
+              }
+            </ul>
+          </article>
+        </div>
+      }
+    }
+  }
+</div>

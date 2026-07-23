@@ -1,0 +1,113 @@
+name: Infrastructure CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - infrastructure/**
+      - scripts/**
+      - .github/workflows/infrastructure-ci.yml
+      - backend/composer.json
+      - backend/composer.lock
+      - frontend/package.json
+      - frontend/package-lock.json
+  pull_request:
+    branches: [main]
+    paths:
+      - infrastructure/**
+      - scripts/**
+      - .github/workflows/infrastructure-ci.yml
+      - backend/composer.json
+      - backend/composer.lock
+      - frontend/package.json
+      - frontend/package-lock.json
+
+permissions:
+  contents: read
+
+concurrency:
+  group: infrastructure-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: Compose and Dockerfile contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Generate ephemeral Compose secrets
+        shell: bash
+        run: |
+          php_key="$(openssl rand -base64 32 | tr -d '\n')"
+          echo "APP_KEY=base64:${php_key}" >> "$GITHUB_ENV"
+          echo "AUDIT_INTEGRITY_KEY=$(openssl rand -base64 32 | tr -d '\n')" >> "$GITHUB_ENV"
+          echo "POSTGRES_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> "$GITHUB_ENV"
+          echo "REDIS_PASSWORD=$(openssl rand -base64 36 | tr -d '\n')" >> "$GITHUB_ENV"
+
+      - name: Validate Compose expansion
+        run: docker compose --file infrastructure/compose.yaml config --quiet
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Check backend Dockerfile
+        run: docker buildx build --check --file infrastructure/docker/backend/Dockerfile .
+
+      - name: Check API proxy Dockerfile
+        run: docker buildx build --check --file infrastructure/docker/api-proxy/Dockerfile .
+
+      - name: Check parameterized Angular Dockerfile
+        run: docker buildx build --check --build-arg APP_NAME=patient-portal --file infrastructure/docker/frontend/Dockerfile .
+
+  image-builds:
+    name: Build ${{ matrix.image }} image
+    needs: contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: backend
+            dockerfile: infrastructure/docker/backend/Dockerfile
+            build_args: ""
+            target: runtime
+          - image: api-proxy
+            dockerfile: infrastructure/docker/api-proxy/Dockerfile
+            build_args: ""
+            target: ""
+          - image: patient-web
+            dockerfile: infrastructure/docker/frontend/Dockerfile
+            build_args: APP_NAME=patient-portal
+            target: ""
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+      - name: Build without publishing
+        shell: bash
+        env:
+          DOCKERFILE: ${{ matrix.dockerfile }}
+          BUILD_ARGS: ${{ matrix.build_args }}
+          TARGET: ${{ matrix.target }}
+          IMAGE_NAME: ${{ matrix.image }}
+        run: |
+          arguments=(--file "$DOCKERFILE" --tag "salud-nexus/${IMAGE_NAME}:ci" --load)
+          if [[ -n "$BUILD_ARGS" ]]; then
+            arguments+=(--build-arg "$BUILD_ARGS")
+          fi
+          if [[ -n "$TARGET" ]]; then
+            arguments+=(--target "$TARGET")
+          fi
+          docker buildx build "${arguments[@]}" .

@@ -1,0 +1,75 @@
+name: Backend CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - backend/**
+      - .github/workflows/backend-ci.yml
+  pull_request:
+    branches: [main]
+    paths:
+      - backend/**
+      - .github/workflows/backend-ci.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Laravel verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      APP_ENV: testing
+      APP_DEBUG: "false"
+      CACHE_STORE: array
+      DB_CONNECTION: sqlite
+      DB_DATABASE: ":memory:"
+      MAIL_MAILER: array
+      QUEUE_CONNECTION: sync
+      SESSION_DRIVER: array
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP and Composer
+        uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: "8.5"
+          extensions: intl, mbstring, pdo_sqlite, sodium, sqlite3
+          coverage: none
+          tools: composer:2.10.1
+
+      - name: Generate an ephemeral application key
+        shell: bash
+        run: php -r "echo 'APP_KEY=base64:'.base64_encode(random_bytes(32)).PHP_EOL;" >> "$GITHUB_ENV"
+
+      - name: Validate and audit the locked dependency graph
+        run: composer validate --strict && composer audit --locked
+
+      - name: Install locked dependencies without plugins or scripts
+        run: composer install --no-interaction --no-progress --prefer-dist --no-plugins --no-scripts
+
+      - name: Run the reviewed Laravel package discovery lifecycle
+        run: php artisan package:discover --ansi --no-interaction
+
+      - name: Verify migrations on an ephemeral SQLite database
+        shell: bash
+        run: |
+          database_file="$RUNNER_TEMP/salud-nexus-ci.sqlite"
+          touch "$database_file"
+          DB_DATABASE="$database_file" php artisan migrate --force --no-interaction
+
+      - name: Run formatting, static analysis, tests and Composer audit
+        run: composer run verify

@@ -1,0 +1,143 @@
+<div class="sn-patient-page">
+  <header class="sn-page-header">
+    <div>
+      <p class="sn-eyebrow">Transparencia y control</p>
+      <h1>Privacidad y accesos</h1>
+      <p>Comprueba cómo se usa tu información y revisa la seguridad de esta sesión sintética.</p>
+    </div>
+  </header>
+
+  <p class="sn-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+  <section class="privacy-principles" aria-label="Principios de privacidad de la demostración">
+    <article>
+      <sn-icon name="visibility_lock" [size]="24" />
+      <div>
+        <strong>Minimización visual</strong><span>Solo el contexto necesario para cada tarea.</span>
+      </div>
+    </article>
+    <article>
+      <sn-icon name="memory" [size]="24" />
+      <div>
+        <strong>Sesión efímera</strong
+        ><span>Sin tokens ni datos sanitarios en almacenamiento web.</span>
+      </div>
+    </article>
+    <article>
+      <sn-icon name="policy" [size]="24" />
+      <div>
+        <strong>Autorización de servidor</strong
+        ><span>El frontend nunca decide el permiso final.</span>
+      </div>
+    </article>
+  </section>
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Cargando el historial de accesos"
+          description="Consultamos eventos sintéticos para esta demostración."
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="No hay accesos en este periodo"
+          description="Los accesos auditados por el backend aparecerán aquí."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudo cargar el historial"
+          description="Inténtalo de nuevo o facilita la referencia al delegado de protección de datos."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="Historial restringido"
+          description="El centro debe validar tu identidad o representación antes de mostrar accesos."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        <div class="privacy-layout sn-reveal">
+          <section class="access-panel" aria-labelledby="access-title">
+            <div class="sn-section-heading">
+              <div>
+                <p class="sn-eyebrow">Trazabilidad</p>
+                <h2 id="access-title">Quién ha accedido a tu información</h2>
+              </div>
+              <sn-status-chip [label]="state.data.length + ' accesos'" tone="info" />
+            </div>
+
+            <div class="access-columns" aria-hidden="true">
+              <span>Persona o equipo</span><span>Finalidad</span><span>Fecha</span
+              ><span>Resultado</span>
+            </div>
+            <ol class="access-list">
+              @for (access of state.data; track access.id) {
+                <li>
+                  <div class="actor">
+                    <span aria-hidden="true"><sn-icon name="badge" [size]="21" /></span>
+                    <div>
+                      <strong>{{ access.actorLabel }}</strong
+                      ><small>{{ access.roleLabel }}</small>
+                    </div>
+                  </div>
+                  <span>{{ access.purposeLabel }}</span>
+                  <time [attr.datetime]="access.dateIso">{{ access.dateLabel }}</time>
+                  <sn-status-chip label="Acceso legítimo" tone="success" />
+                </li>
+              }
+            </ol>
+            <p class="audit-note">
+              <sn-icon name="verified" [size]="18" />
+              En producción, estos eventos procederán del backend auditable y no del navegador.
+            </p>
+          </section>
+
+          <aside class="privacy-sidebar">
+            <section aria-labelledby="sessions-title">
+              <span class="sidebar-icon" aria-hidden="true"
+                ><sn-icon name="devices" [size]="24"
+              /></span>
+              <p class="sn-eyebrow">Seguridad de cuenta</p>
+              <h2 id="sessions-title">Sesiones activas</h2>
+              @if (otherSessions() > 0) {
+                <p>Esta pestaña y {{ otherSessions() }} sesiones sintéticas adicionales.</p>
+                <button matButton="outlined" type="button" (click)="closeOtherSessions()">
+                  Cerrar otras sesiones
+                </button>
+              } @else {
+                <sn-status-chip label="Solo esta sesión" tone="success" />
+                <p>No quedan otras sesiones sintéticas abiertas.</p>
+              }
+            </section>
+
+            <section aria-labelledby="rights-title">
+              <span class="sidebar-icon sidebar-icon--rights" aria-hidden="true"
+                ><sn-icon name="gavel" [size]="24"
+              /></span>
+              <p class="sn-eyebrow">Tus derechos</p>
+              <h2 id="rights-title">Acceso, rectificación y otros derechos</h2>
+              <p>
+                El centro debe ofrecer un canal verificable, plazos y trazabilidad de cada
+                solicitud.
+              </p>
+              <button matButton="text" type="button" (click)="requestRightsHelp()">
+                Cómo ejercerlos
+              </button>
+            </section>
+          </aside>
+        </div>
+      }
+    }
+  }
+</div>

@@ -1,0 +1,28 @@
+@if (kind() === 'loading') {
+  <section class="state-panel" role="status" aria-live="polite" aria-busy="true">
+    <mat-spinner [diameter]="36" />
+    <div>
+      <h2>{{ heading() }}</h2>
+      <p>{{ description() }}</p>
+    </div>
+  </section>
+} @else {
+  <section
+    class="state-panel state-panel--message"
+    [class.state-panel--error]="kind() === 'error'"
+    [class.state-panel--restricted]="kind() === 'restricted'"
+    [attr.role]="kind() === 'error' ? 'alert' : 'status'"
+  >
+    <span class="state-icon" aria-hidden="true"><sn-icon [name]="icon()" [size]="30" /></span>
+    <div>
+      <h2>{{ heading() }}</h2>
+      <p>{{ description() }}</p>
+      @if (kind() === 'error' && correlationId()) {
+        <p class="support-reference">Referencia para soporte: {{ correlationId() }}</p>
+      }
+    </div>
+    <button matButton="outlined" type="button" (click)="action.emit()">
+      {{ actionLabel() }}
+    </button>
+  </section>
+}

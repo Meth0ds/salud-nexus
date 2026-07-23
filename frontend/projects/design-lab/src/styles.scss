@@ -1,0 +1,161 @@
+@use '../../design-system/src/styles/theme';
+@use 'styles/mfa-flow';
+
+:root {
+  --sn-font-heading: var(--sn-font-display);
+  --sn-color-atlantic-950: #061a33;
+  --sn-color-atlantic-900: #082a50;
+  --sn-color-ocean-700: var(--sn-color-accent);
+  --sn-color-teal-600: var(--sn-color-primary);
+  --sn-color-teal-100: var(--sn-color-surface-emphasis);
+  --sn-color-surface-raised: var(--sn-color-surface-subtle);
+  --sn-color-success: #198754;
+  --sn-color-warning: #d07a05;
+  --sn-color-danger: var(--sn-color-status-danger-text);
+  --sn-shadow-card: var(--sn-elevation-2);
+}
+
+:root[data-theme='night'] {
+  color-scheme: dark;
+  --sn-color-canvas: #07192b;
+  --sn-color-surface: #0d2439;
+  --sn-color-surface-raised: #122c43;
+  --sn-color-text: #eff7fb;
+  --sn-color-text-muted: #abc0d0;
+  --sn-color-border: #355167;
+  --sn-color-border-subtle: #263f53;
+  --sn-color-focus: #6cbcff;
+  --sn-shadow-card: 0 1rem 3rem rgb(0 0 0 / 28%);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-inline-size: 20rem;
+  scroll-behavior: smooth;
+  background: var(--sn-color-canvas);
+}
+
+body {
+  min-block-size: 100dvh;
+  margin: 0;
+  color: var(--sn-color-text);
+  background: var(--sn-color-canvas);
+  font: 400 1rem/1.5 var(--sn-font-body);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.mat-icon.mat-ligature-font {
+  direction: ltr;
+  font-family: 'Material Symbols Rounded', sans-serif !important;
+  font-style: normal;
+  font-weight: 400;
+  font-feature-settings: 'liga';
+  letter-spacing: normal;
+  line-height: 1;
+  text-transform: none;
+  white-space: nowrap;
+  word-wrap: normal;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  color: #04172b;
+  background: #80e9e4;
+}
+
+::view-transition-old(root) {
+  animation: sn-fade-out 90ms ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: sn-fade-in 180ms ease-out both;
+}
+
+@keyframes sn-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.25rem);
+  }
+}
+
+@keyframes sn-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (max-width: 56rem) {
+  // These two high-fidelity mockups collapse the surrounding desktop frame so
+  // the patient flow can be reviewed at its real mobile reading width.
+  .frame-wrap
+    > .mockup-frame:is(
+      [data-screen-id='G03'],
+      [data-screen-id='P12'],
+      [data-screen-id='P23'],
+      [data-screen-id='P24']
+    ) {
+    min-inline-size: 20rem;
+    border-radius: 0.8rem;
+
+    .product-bar {
+      grid-template-columns: 1fr auto;
+    }
+
+    .context-pill,
+    .product-bar > button,
+    .product-nav,
+    .breadcrumbs,
+    .page-title > .primary-action {
+      display: none;
+    }
+
+    .product-layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .product-main {
+      padding: 0.8rem;
+    }
+
+    .page-title {
+      margin-block-start: 0.25rem;
+    }
+
+    .page-title h2 {
+      font-size: 1.45rem;
+    }
+  }
+}
+
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight !important;
+  }
+}

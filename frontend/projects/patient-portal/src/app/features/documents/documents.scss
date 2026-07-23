@@ -1,0 +1,206 @@
+:host {
+  display: block;
+}
+
+.download-boundary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.9rem 1rem;
+  margin-block: 1.75rem 1.25rem;
+  border: 1px solid var(--sn-color-status-info-border);
+  border-radius: var(--sn-radius-lg);
+  color: var(--sn-color-status-info-text);
+  background: var(--sn-color-status-info-surface);
+}
+
+.download-boundary strong,
+.download-boundary span {
+  display: block;
+}
+
+.download-boundary span {
+  margin-block-start: 0.15rem;
+}
+
+.documents-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.7fr);
+  gap: 1.15rem;
+  align-items: start;
+}
+
+.documents-panel,
+.details-panel {
+  padding: 1.35rem;
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-xl);
+  background: rgb(255 255 255 / 92%);
+  box-shadow: var(--sn-elevation-1);
+}
+
+.documents-panel ul {
+  display: grid;
+  padding: 0;
+  margin: 1rem 0 0;
+  list-style: none;
+}
+
+.documents-panel li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 0.85rem;
+  align-items: center;
+  padding-block: 0.9rem;
+  border-block-start: 1px solid var(--sn-color-border-subtle);
+}
+
+.document-icon,
+.details-placeholder-icon,
+.details-heading > span {
+  display: grid;
+  inline-size: 3rem;
+  block-size: 3rem;
+  border-radius: 0.9rem;
+  color: #645111;
+  background: #f5eabf;
+  place-items: center;
+}
+
+h2,
+h3,
+p {
+  margin-block-start: 0;
+}
+
+h2,
+h3 {
+  color: var(--sn-color-text-strong);
+  font-family: var(--sn-font-display);
+}
+
+h3 {
+  margin-block-end: 0.2rem;
+  font-size: 1rem;
+}
+
+.documents-panel li p {
+  margin-block-end: 0;
+  color: var(--sn-color-text-muted);
+  font-size: 0.83rem;
+}
+
+.format-label {
+  color: var(--sn-color-text-muted);
+  font-family: var(--sn-font-data);
+  font-size: 0.75rem;
+}
+
+.details-panel {
+  min-block-size: 20rem;
+}
+
+.details-heading {
+  display: flex;
+  justify-content: space-between;
+  margin-block-end: 1.25rem;
+}
+
+.details-heading button {
+  display: grid;
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: var(--sn-color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  place-items: center;
+}
+
+.details-panel h2 {
+  margin-block-end: 1rem;
+  font-size: 1.25rem;
+}
+
+.details-panel dl {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.details-panel dl > div {
+  padding-block-start: 0.75rem;
+  border-block-start: 1px solid var(--sn-color-border-subtle);
+}
+
+dt {
+  color: var(--sn-color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+dd {
+  margin: 0.15rem 0 0;
+  color: var(--sn-color-text-strong);
+}
+
+.details-note {
+  padding: 0.8rem;
+  margin-block: 1rem 0;
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-color-text-muted);
+  background: var(--sn-color-surface-subtle);
+}
+
+.details-panel > button[matButton] {
+  inline-size: 100%;
+  margin-block-start: 1rem;
+}
+
+.download-notice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.75rem;
+  margin-block: 0.75rem 0;
+  border: 1px solid var(--sn-color-status-success-border);
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-color-status-success-text);
+  background: var(--sn-color-status-success-surface);
+}
+
+.download-notice--error {
+  border-color: var(--sn-color-status-info-border);
+  color: var(--sn-color-status-info-text);
+  background: var(--sn-color-status-info-surface);
+}
+
+.details-placeholder-icon {
+  margin-block-end: 1.25rem;
+  color: var(--sn-color-primary);
+  background: var(--sn-color-surface-emphasis);
+}
+
+.details-panel > p:last-child {
+  color: var(--sn-color-text-muted);
+}
+
+@media (max-width: 66rem) {
+  .documents-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 45rem) {
+  .documents-panel li {
+    grid-template-columns: auto 1fr;
+  }
+
+  .format-label,
+  .documents-panel li button {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

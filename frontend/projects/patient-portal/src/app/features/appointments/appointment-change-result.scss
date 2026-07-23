@@ -1,0 +1,116 @@
+:host {
+  display: block;
+}
+
+section {
+  display: grid;
+  justify-items: center;
+  max-inline-size: 48rem;
+  padding: clamp(1.5rem, 5vw, 3.5rem);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-xl);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: var(--sn-elevation-1);
+  text-align: center;
+}
+
+section:focus {
+  outline: 3px solid var(--sn-color-primary);
+  outline-offset: 4px;
+}
+
+.result-icon {
+  display: grid;
+  inline-size: 5rem;
+  block-size: 5rem;
+  margin-block-end: 1.35rem;
+  border-radius: 50%;
+  color: var(--sn-color-status-success-text);
+  background: var(--sn-color-status-success-surface);
+  place-items: center;
+}
+
+h2 {
+  margin: 0;
+  color: var(--sn-color-text-strong);
+  font: 730 var(--sn-type-heading-md) / 1.15 var(--sn-font-display);
+}
+
+section > p:not(.sn-eyebrow) {
+  max-inline-size: 38rem;
+  color: var(--sn-color-text-muted);
+}
+
+.result-continuity {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.8rem;
+  align-items: center;
+  inline-size: 100%;
+  padding: 1rem;
+  margin-block-start: 0.8rem;
+  border: 1px solid var(--sn-color-border-subtle);
+  border-radius: var(--sn-radius-lg);
+  background: var(--sn-color-canvas);
+  text-align: start;
+}
+
+.result-continuity span,
+.result-continuity small,
+.result-continuity strong {
+  display: block;
+}
+
+.result-continuity small {
+  color: var(--sn-color-text-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.result-note,
+.demo-note {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.75rem;
+  margin-block-start: 0.75rem;
+  border-radius: var(--sn-radius-md);
+  text-align: start;
+}
+
+.result-note {
+  color: var(--sn-color-status-success-text);
+  background: var(--sn-color-status-success-surface);
+}
+
+.demo-note {
+  color: var(--sn-color-status-info-text);
+  background: var(--sn-color-status-info-surface);
+}
+
+.result-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: center;
+  margin-block-start: 1.5rem;
+}
+
+@media (max-width: 44rem) {
+  .result-continuity {
+    grid-template-columns: 1fr;
+  }
+
+  .result-actions,
+  .result-actions a {
+    inline-size: 100%;
+  }
+}
+
+@media (forced-colors: active) {
+  section {
+    border-color: CanvasText;
+  }
+}

@@ -1,0 +1,37 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies and build output
+/frontend/node_modules/
+/frontend/dist/
+/backend/vendor/
+/backend/public/build/
+
+# Runtime and test artifacts
+/backend/storage/framework/cache/**
+/backend/storage/framework/sessions/**
+/backend/storage/framework/views/**
+/backend/storage/logs/**
+/frontend/test-results/
+/frontend/playwright-report/
+/output/playwright/
+/coverage/
+
+# Local tooling
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Local database (Freebuff desktop)
+.freebuff/desktop.db
+.freebuff/desktop.db-shm
+.freebuff/desktop.db-wal
+
+# Binary tools (ffmpeg)
+tools/ffmpeg-8.1.2-essentials_build/
+tools/ffmpeg-release-essentials.zip

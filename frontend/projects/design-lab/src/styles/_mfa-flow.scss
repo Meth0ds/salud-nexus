@@ -1,0 +1,680 @@
+.mfa-flow {
+  --mfa-ink: #061a33;
+  --mfa-deep: #082a50;
+  --mfa-teal: #00616c;
+  --mfa-tide: #d6edef;
+  --mfa-blue: #155a7d;
+  --mfa-line: #a9c8cd;
+  color: var(--mfa-ink);
+}
+
+.mfa-flow *,
+.mfa-flow *::before,
+.mfa-flow *::after {
+  box-sizing: border-box;
+}
+
+.mfa-flow button,
+.mfa-flow input {
+  font: inherit;
+}
+
+.mfa-flow button {
+  cursor: pointer;
+}
+
+.mfa-flow .eyebrow {
+  margin: 0;
+  color: var(--mfa-teal);
+  font: 760 0.72rem/1.2 var(--sn-font-data);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.mfa-flow__ceremony {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.72fr) minmax(20rem, 1.35fr) minmax(13rem, 0.82fr);
+  gap: clamp(1rem, 2vw, 1.75rem);
+  align-items: stretch;
+  padding: clamp(1rem, 2.6vw, 2.25rem);
+  overflow: hidden;
+  border: 1px solid #bed3d7;
+  border-radius: 1.4rem;
+  background:
+    radial-gradient(circle at 91% 9%, rgb(86 200 198 / 18%), transparent 17rem),
+    linear-gradient(135deg, #f8fcfc 0%, #edf7f7 62%, #e3f1f3 100%);
+  box-shadow: 0 1.25rem 3rem rgb(6 43 52 / 10%);
+}
+
+.trust-line,
+.enrollment-steps ol {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 1.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trust-line::before,
+.enrollment-steps ol::before {
+  position: absolute;
+  inset-block: calc(50% - 5.2rem);
+  inset-inline-start: 1.02rem;
+  inline-size: 2px;
+  content: '';
+  background: linear-gradient(var(--mfa-teal) 0 48%, var(--mfa-line) 48% 100%);
+}
+
+.trust-line li,
+.enrollment-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.1rem 1fr;
+  gap: 0.8rem;
+  align-items: start;
+  min-inline-size: 0;
+}
+
+.trust-line li > span,
+.enrollment-steps li > span {
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  inline-size: 2.1rem;
+  block-size: 2.1rem;
+  border: 1px solid var(--mfa-line);
+  border-radius: 50%;
+  color: #536f76;
+  background: #f7fbfb;
+  font: 760 0.78rem/1 var(--sn-font-data);
+}
+
+.trust-line .is-complete > span,
+.enrollment-steps .is-complete > span {
+  color: #fff;
+  border-color: var(--mfa-teal);
+  background: var(--mfa-teal);
+}
+
+.trust-line .is-current > span,
+.enrollment-steps .is-current > span {
+  color: #fff;
+  border: 4px solid #a6dedd;
+  background: var(--mfa-deep);
+  box-shadow: 0 0 0 5px rgb(0 97 108 / 10%);
+  animation: trust-arrival 420ms var(--sn-motion-ease-enter) both;
+}
+
+.trust-line p,
+.enrollment-steps li p {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0.15rem 0 0;
+  line-height: 1.25;
+}
+
+.trust-line strong,
+.enrollment-steps strong {
+  color: var(--mfa-ink);
+  font-size: 0.91rem;
+}
+
+.trust-line small,
+.enrollment-steps small {
+  color: #506a71;
+  font-size: 0.78rem;
+}
+
+.verification-card,
+.enrollment-card {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  padding: clamp(1.25rem, 2.5vw, 2rem);
+  border: 1px solid #c5d7da;
+  border-radius: 1.15rem;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 1rem 2.4rem rgb(8 42 80 / 10%);
+  animation: card-arrival 360ms var(--sn-motion-ease-enter) both;
+}
+
+.verification-card__status,
+.enrollment-card__heading {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-block-end: 1.35rem;
+  padding-block-end: 0.9rem;
+  border-block-end: 1px solid #d8e5e7;
+}
+
+.verification-card__status > span,
+.stage-label {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+  color: var(--mfa-deep);
+  font-weight: 720;
+}
+
+.verification-card__status small,
+.expires-label {
+  color: #5a7177;
+  font: 650 0.77rem/1 var(--sn-font-data);
+}
+
+.expires-label {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.verification-card h3,
+.enrollment-card h3,
+.enrollment-steps h3 {
+  margin: 0.4rem 0 0.55rem;
+  color: var(--mfa-ink);
+  font: 760 clamp(1.45rem, 2.4vw, 2rem) / 1.08 var(--sn-font-heading);
+  letter-spacing: -0.025em;
+}
+
+.verification-card__intro,
+.enrollment-card > p {
+  max-inline-size: 35rem;
+  margin: 0 0 1.25rem;
+  color: #405d64;
+  line-height: 1.45;
+}
+
+.verification-card label,
+.enrollment-card label {
+  margin-block-end: 0.45rem;
+  color: #173f49;
+  font-size: 0.84rem;
+  font-weight: 720;
+}
+
+.code-field {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  border: 1.5px solid #678b92;
+  border-radius: 0.75rem;
+  background: #fff;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.code-field:focus-within {
+  border-color: var(--mfa-blue);
+  box-shadow: 0 0 0 4px rgb(21 90 125 / 15%);
+}
+
+.code-field input,
+.recovery-field {
+  min-inline-size: 0;
+  border: 0;
+  color: var(--mfa-deep);
+  background: transparent;
+  outline: 0;
+  font: 760 1.35rem/1 var(--sn-font-data);
+  letter-spacing: 0.22em;
+}
+
+.code-field input {
+  padding: 0.95rem 0.4rem 0.95rem 1rem;
+}
+
+.code-field input::placeholder,
+.recovery-field::placeholder {
+  color: #9ab0b5;
+  opacity: 1;
+}
+
+.code-field > span {
+  margin-inline-end: 0.75rem;
+  padding: 0.4rem 0.55rem;
+  border-radius: 999px;
+  color: #395b63;
+  background: #edf5f5;
+  font: 700 0.72rem/1 var(--sn-font-data);
+}
+
+.recovery-field {
+  inline-size: 100%;
+  padding: 1rem;
+  border: 1.5px solid #678b92;
+  border-radius: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.recovery-field:focus {
+  border-color: var(--mfa-blue);
+  box-shadow: 0 0 0 4px rgb(21 90 125 / 15%);
+}
+
+.field-help {
+  margin-block-start: 0.45rem;
+  color: #5b7379;
+  font-size: 0.76rem;
+}
+
+.ceremony-action {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2.85rem;
+  margin-block-start: 1.25rem;
+  padding: 0.72rem 1rem;
+  border: 1px solid var(--mfa-deep);
+  border-radius: 0.7rem;
+  color: #fff;
+  background: var(--mfa-deep);
+  box-shadow: 0 0.45rem 1rem rgb(8 42 80 / 16%);
+  font-weight: 720;
+  transition:
+    transform 120ms ease,
+    background-color 120ms ease;
+}
+
+.ceremony-action:hover {
+  background: #0b3b6b;
+  transform: translateY(-1px);
+}
+
+.ceremony-action:active {
+  transform: translateY(0);
+}
+
+.text-action {
+  align-self: center;
+  margin-block-start: 0.8rem;
+  padding: 0.45rem;
+  border: 0;
+  color: var(--mfa-blue);
+  background: transparent;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+
+.assurance-note,
+.custody-note {
+  align-self: center;
+  min-inline-size: 0;
+  padding: 1.25rem;
+  border: 1px solid #b8d0d4;
+  border-radius: 1rem;
+  color: #204a54;
+  background: rgb(224 241 242 / 64%);
+}
+
+.assurance-note__seal,
+.custody-note > span {
+  display: grid;
+  place-items: center;
+  inline-size: 3rem;
+  block-size: 3rem;
+  margin-block-end: 1rem;
+  border: 1px solid #96c4c8;
+  border-radius: 0.8rem;
+  color: var(--mfa-teal);
+  background: #fff;
+}
+
+.assurance-note h4,
+.custody-note h4 {
+  margin: 0.45rem 0 0.9rem;
+  color: var(--mfa-ink);
+  font: 730 1rem/1.28 var(--sn-font-heading);
+}
+
+.assurance-note ul {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.assurance-note li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+  align-items: start;
+  font-size: 0.79rem;
+}
+
+.assurance-note li sn-icon {
+  color: var(--mfa-teal);
+}
+
+.phishing-note {
+  margin: 1rem 0 0;
+  padding-block-start: 0.85rem;
+  border-block-start: 1px solid #b9d2d5;
+  color: #48656c;
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.enrollment-layout {
+  display: grid;
+  grid-template-columns: minmax(12rem, 0.78fr) minmax(22rem, 1.4fr) minmax(13rem, 0.78fr);
+  gap: clamp(1rem, 2vw, 1.75rem);
+  align-items: stretch;
+  padding: clamp(1rem, 2.6vw, 2.25rem);
+  overflow: hidden;
+  border: 1px solid #bed3d7;
+  border-radius: 1.4rem;
+  background:
+    linear-gradient(90deg, rgb(8 42 80 / 4%) 1px, transparent 1px) 0 0 / 3rem 3rem,
+    linear-gradient(#f8fcfc, #eaf5f5);
+  box-shadow: 0 1.25rem 3rem rgb(6 43 52 / 10%);
+}
+
+.enrollment-steps {
+  align-self: center;
+}
+
+.enrollment-steps > h3 {
+  margin-block-end: 1.6rem;
+  font-size: 1.2rem;
+}
+
+.enrollment-steps ol {
+  gap: 1.25rem;
+}
+
+.enrollment-steps ol::before {
+  inset-block: 1rem;
+  background: linear-gradient(var(--mfa-teal) 0 39%, var(--mfa-line) 39% 67%, #d6e2e4 67% 100%);
+}
+
+.qr-stage {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-block: 0.25rem 0.8rem;
+  padding: 1rem;
+  border: 1px solid #c5d9dc;
+  border-radius: 0.85rem;
+  background: #f5faf9;
+}
+
+.qr-placeholder {
+  display: grid;
+  grid-template-columns: repeat(4, 0.75rem);
+  grid-auto-rows: 0.75rem;
+  gap: 0.2rem;
+  padding: 0.6rem;
+  border: 0.35rem solid #fff;
+  outline: 1px solid #b8cdd0;
+  background: #fff;
+}
+
+.qr-placeholder span {
+  background: var(--mfa-deep);
+}
+
+.qr-placeholder span:nth-child(3n + 2),
+.qr-placeholder span:nth-child(5),
+.qr-placeholder span:nth-child(12) {
+  border-radius: 50%;
+  background: var(--mfa-teal);
+}
+
+.qr-stage p,
+.recovery-preview p {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.qr-stage strong,
+.recovery-preview strong {
+  color: var(--mfa-ink);
+  font-size: 0.85rem;
+}
+
+.qr-stage small,
+.recovery-preview small {
+  color: #5a7177;
+  font-size: 0.75rem;
+}
+
+.enrollment-card details {
+  color: #315963;
+  font-size: 0.8rem;
+}
+
+.enrollment-card summary {
+  cursor: pointer;
+  color: var(--mfa-blue);
+  font-weight: 700;
+}
+
+.recovery-preview {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: start;
+  margin-block-start: 1rem;
+  padding: 0.9rem;
+  border: 1px solid #c8dadd;
+  border-radius: 0.8rem;
+  color: var(--mfa-teal);
+  background: #f0f8f8;
+}
+
+.custody-note p:not(.eyebrow) {
+  color: #45636b;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.custody-note > div {
+  display: grid;
+  gap: 0.25rem;
+  margin-block-start: 1rem;
+  padding-block-start: 0.85rem;
+  border-block-start: 1px solid #b9d2d5;
+}
+
+.custody-note > div strong {
+  color: #745000;
+  font-size: 0.78rem;
+}
+
+.custody-note > div small {
+  color: #526a70;
+  font-size: 0.75rem;
+}
+
+@keyframes trust-arrival {
+  from {
+    opacity: 0.3;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes card-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (max-width: 72rem) {
+  .mfa-flow__ceremony,
+  .enrollment-layout {
+    grid-template-columns: minmax(10rem, 0.65fr) minmax(20rem, 1.35fr);
+  }
+
+  .assurance-note,
+  .custody-note {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 1rem;
+    inline-size: 100%;
+  }
+
+  .assurance-note__seal,
+  .custody-note > span {
+    grid-row: 1 / span 3;
+  }
+
+  .assurance-note ul {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .phishing-note,
+  .custody-note > div {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 48rem) {
+  .mfa-flow__ceremony,
+  .enrollment-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 0.75rem;
+    border-radius: 1rem;
+  }
+
+  .trust-line {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    padding: 0.25rem;
+  }
+
+  .trust-line::before {
+    inset: 1.25rem 16% auto;
+    inline-size: auto;
+    block-size: 2px;
+    background: linear-gradient(90deg, var(--mfa-teal) 0 48%, var(--mfa-line) 48% 100%);
+  }
+
+  .trust-line li {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .trust-line li > span {
+    inline-size: 2rem;
+    block-size: 2rem;
+  }
+
+  .trust-line small {
+    display: none;
+  }
+
+  .verification-card,
+  .enrollment-card {
+    padding: 1rem;
+  }
+
+  .assurance-note,
+  .custody-note {
+    display: block;
+  }
+
+  .assurance-note ul {
+    grid-template-columns: 1fr;
+  }
+
+  .phishing-note,
+  .custody-note > div {
+    grid-column: auto;
+  }
+
+  .enrollment-steps ol {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+  }
+
+  .enrollment-steps ol::before {
+    inset: 1rem 10% auto;
+    inline-size: auto;
+    block-size: 2px;
+    background: linear-gradient(90deg, var(--mfa-teal) 0 39%, var(--mfa-line) 39% 100%);
+  }
+
+  .enrollment-steps li {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .enrollment-steps li p small {
+    display: none;
+  }
+
+  .enrollment-steps li p strong {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 25rem) {
+  .verification-card__status,
+  .enrollment-card__heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .code-field input {
+    font-size: 1.1rem;
+    letter-spacing: 0.15em;
+  }
+
+  .qr-stage {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trust-line .is-current > span,
+  .enrollment-steps .is-current > span,
+  .verification-card,
+  .enrollment-card {
+    animation: none;
+  }
+
+  .ceremony-action {
+    transition: none;
+  }
+
+  .ceremony-action:hover {
+    transform: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .mfa-flow__ceremony,
+  .enrollment-layout,
+  .verification-card,
+  .enrollment-card,
+  .assurance-note,
+  .custody-note {
+    border: 1px solid CanvasText;
+    background: Canvas;
+  }
+
+  .trust-line .is-current > span,
+  .enrollment-steps .is-current > span {
+    border-color: Highlight;
+    color: HighlightText;
+    background: Highlight;
+    box-shadow: none;
+  }
+}

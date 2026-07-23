@@ -1,0 +1,80 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "paths": {
+      "api-client": ["./dist/api-client"],
+      "auth": ["./dist/auth"],
+      "design-system": ["./dist/design-system"],
+      "motion": ["./dist/motion"],
+      "shared": ["./dist/shared"]
+    },
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./projects/patient-portal/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/patient-portal/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/staff-portal/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/staff-portal/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/design-lab/tsconfig.app.json"
+    },
+    {
+      "path": "./projects/design-lab/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/design-system/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/design-system/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/api-client/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/api-client/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/auth/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/auth/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/shared/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/shared/tsconfig.spec.json"
+    },
+    {
+      "path": "./projects/motion/tsconfig.lib.json"
+    },
+    {
+      "path": "./projects/motion/tsconfig.spec.json"
+    }
+  ]
+}

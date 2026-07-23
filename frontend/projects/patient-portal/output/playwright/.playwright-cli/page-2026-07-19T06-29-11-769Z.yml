@@ -1,0 +1,71 @@
+- generic [ref=e75]:
+  - link "Saltar al contenido" [ref=e76] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=e77]:
+    - banner [ref=e78]:
+      - link "Salud Nexus, ir al inicio" [ref=e79] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=e83]:
+          - strong [ref=e84]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=e95] [cursor=pointer]: LM
+    - main [ref=e127]:
+      - generic [ref=e306]:
+        - link [ref=e307] [cursor=pointer]:
+          - /url: /citas
+          - generic [ref=e308]: arrow_back
+          - text: Volver a mis citas
+        - generic [ref=e311]:
+          - paragraph [ref=e312]: Reserva guiada
+          - heading "Pedir una cita" [level=1] [ref=e313]
+          - paragraph [ref=e314]: Cuatro pasos breves. La disponibilidad y confirmación son sintéticas en esta demo.
+        - paragraph [ref=e315]: "Paso 4 de 4: Revisión."
+        - generic [ref=e316]:
+          - navigation "Pasos para pedir una cita" [ref=e317]:
+            - list [ref=e318]:
+              - listitem [ref=e319]:
+                - generic [ref=e320]: check
+              - listitem [ref=e321]:
+                - generic [ref=e322]: check
+              - listitem [ref=e323]:
+                - generic [ref=e324]: check
+              - listitem [ref=e325]:
+                - generic [ref=e326]: "4"
+          - generic [ref=e327]:
+            - group "Revisa antes de confirmar" [ref=e398]:
+              - paragraph [ref=e400]: Confirma solo si la información sintética coincide con tu elección.
+              - generic [ref=e401]:
+                - generic [ref=e402]:
+                  - term [ref=e403]: Centro
+                  - definition [ref=e404]: Centro Atlántico
+                - generic [ref=e405]:
+                  - term [ref=e406]: Profesional
+                  - definition [ref=e407]: Dra. Elena Robles · Medicina interna
+                - generic [ref=e408]:
+                  - term [ref=e409]: Fecha
+                  - definition [ref=e410]: Miércoles, 29 de julio de 2026 · 11:30–12:00
+                - generic [ref=e411]:
+                  - term [ref=e412]: Modalidad
+                  - definition [ref=e413]: Presencial
+              - complementary [ref=e414]:
+                - generic [ref=e415]: science
+                - text: Confirmar solo cambia el repositorio en memoria de esta pestaña.
+            - generic [ref=e342]:
+              - button "Atrás" [ref=e362]
+              - button "Confirmar cita" [ref=e417]
+    - navigation "Navegación principal móvil" [ref=e284]:
+      - link "Inicio" [ref=e285] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=e286]: space_dashboard
+      - link "Citas" [ref=e289] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=e290]: calendar_month
+      - link "Medicación" [ref=e293] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=e294]: medication
+      - link "Documentos" [ref=e297] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=e298]: folder_open
+      - link "Privacidad" [ref=e301] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=e302]: shield_lock

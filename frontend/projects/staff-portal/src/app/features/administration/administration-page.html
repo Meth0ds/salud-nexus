@@ -1,0 +1,199 @@
+<article class="administration-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Gobierno · Centro Atlántico</p>
+      <h1>Administración y seguridad</h1>
+      <p>Postura operativa del entorno de demostración. Decisiones de autorización en servidor.</p>
+    </div>
+    <div class="heading-actions">
+      <span class="risk-state">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">health_and_safety</mat-icon>
+        Riesgo controlado
+      </span>
+      <button mat-stroked-button type="button" (click)="refresh()">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">refresh</mat-icon>
+        Verificar
+      </button>
+    </div>
+  </header>
+
+  @switch (workspace.security().status) {
+    @case ('idle') {
+      <section class="state-panel" data-state="loading">
+        <mat-spinner diameter="32" />
+        <p>Preparando el alcance seguro…</p>
+      </section>
+    }
+    @case ('loading') {
+      <section class="state-panel" data-state="loading" aria-live="polite">
+        <mat-spinner diameter="32" />
+        <p>{{ workspace.security().message }}</p>
+      </section>
+    }
+    @case ('empty') {
+      <section class="state-panel" data-state="empty">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">shield_lock</mat-icon>
+        <h2>Sin actividad para este alcance</h2>
+        <p>No hay métricas ni alertas pendientes en el contexto seleccionado.</p>
+        <button mat-stroked-button type="button" (click)="refresh()">Volver a verificar</button>
+      </section>
+    }
+    @case ('error') {
+      <section class="state-panel error" data-state="error" role="alert">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">gpp_maybe</mat-icon>
+        <h2>No se pudo verificar el estado</h2>
+        <p>{{ workspace.security().message }}</p>
+        <button mat-flat-button type="button" (click)="refresh()">Reintentar</button>
+      </section>
+    }
+    @case ('ready') {
+      <section class="metrics" aria-label="Indicadores de seguridad" animate.enter="page-enter">
+        @for (metric of workspace.security().data.metrics; track metric.id) {
+          <article [attr.data-tone]="metric.tone">
+            <span class="metric-icon">
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">{{
+                metricIcon(metric.tone)
+              }}</mat-icon>
+            </span>
+            <span>
+              <small>{{ metric.label }}</small>
+              <strong>{{ metric.value }}</strong>
+              <em>{{ metric.trend }}</em>
+            </span>
+          </article>
+        }
+      </section>
+
+      <div class="security-layout" animate.enter="page-enter">
+        <section class="control-posture" aria-labelledby="controls-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Cadena de confianza</p>
+              <h2 id="controls-title">Controles en servicio</h2>
+            </div>
+            <span>Última verificación · 08:51</span>
+          </div>
+
+          <ol class="control-spine">
+            <li>
+              <span class="control-index">01</span>
+              <span class="control-icon"
+                ><mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                  >passkey</mat-icon
+                ></span
+              >
+              <span
+                ><strong>Identidad reforzada</strong
+                ><small>OIDC, MFA adaptable y sesiones de servidor</small></span
+              >
+              <b>Operativo</b>
+            </li>
+            <li>
+              <span class="control-index">02</span>
+              <span class="control-icon"
+                ><mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                  >policy</mat-icon
+                ></span
+              >
+              <span
+                ><strong>Autorización contextual</strong
+                ><small>Centro, rol, finalidad y relación asistencial</small></span
+              >
+              <b>Operativo</b>
+            </li>
+            <li>
+              <span class="control-index">03</span>
+              <span class="control-icon"
+                ><mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                  >history</mat-icon
+                ></span
+              >
+              <span
+                ><strong>Auditoría inmutable</strong
+                ><small>Eventos encadenados y retención gobernada</small></span
+              >
+              <b>Operativo</b>
+            </li>
+            <li>
+              <span class="control-index">04</span>
+              <span class="control-icon"
+                ><mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                  >encrypted</mat-icon
+                ></span
+              >
+              <span
+                ><strong>Protección de datos</strong
+                ><small>Cifrado, minimización y salidas controladas</small></span
+              >
+              <b>Operativo</b>
+            </li>
+          </ol>
+        </section>
+
+        <section class="alerts" aria-labelledby="alerts-title">
+          <div class="section-heading alerts-heading">
+            <div>
+              <p class="section-kicker">Supervisión</p>
+              <h2 id="alerts-title">Alertas para revisar</h2>
+            </div>
+            <button
+              mat-button
+              type="button"
+              [attr.aria-pressed]="highPriorityOnly()"
+              (click)="toggleHighPriority()"
+            >
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">filter_alt</mat-icon>
+              {{ highPriorityOnly() ? 'Mostrar todas' : 'Solo prioridad alta' }}
+            </button>
+          </div>
+
+          <div class="alert-list">
+            @for (alert of alerts(); track alert.id) {
+              <article class="alert-item" [attr.data-severity]="alert.severity">
+                <span class="severity-mark" aria-hidden="true"></span>
+                <div>
+                  <span class="severity-label">{{
+                    alert.severity === 'high' ? 'Alta' : 'Media'
+                  }}</span>
+                  <h3>{{ alert.title }}</h3>
+                  <p>{{ alert.timestamp }}</p>
+                </div>
+                <button mat-stroked-button type="button" (click)="openAlert(alert)">Revisar</button>
+              </article>
+            } @empty {
+              <div class="filtered-empty">
+                <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">done_all</mat-icon>
+                <p>No hay alertas con esta prioridad.</p>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    }
+  }
+
+  @if (selectedAlert(); as alert) {
+    <aside class="alert-detail" aria-labelledby="alert-detail-title" animate.enter="detail-enter">
+      <span class="detail-symbol" aria-hidden="true">
+        <mat-icon fontSet="material-symbols-rounded">manage_search</mat-icon>
+      </span>
+      <div>
+        <p class="section-kicker">Revisión controlada · {{ alert.timestamp }}</p>
+        <h2 id="alert-detail-title">{{ alert.title }}</h2>
+        <p>{{ alert.detail }}</p>
+        <small
+          >Datos sintéticos de demostración. La investigación real requiere autorización
+          renovada.</small
+        >
+      </div>
+      <button
+        mat-icon-button
+        type="button"
+        aria-label="Cerrar detalle de alerta"
+        (click)="closeAlert()"
+      >
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">close</mat-icon>
+      </button>
+    </aside>
+  }
+</article>

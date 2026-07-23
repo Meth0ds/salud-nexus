@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.current-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.9rem 1rem;
+  align-content: start;
+  min-block-size: 25rem;
+  padding: clamp(1rem, 2.5vw, 1.35rem);
+  border: 1px solid color-mix(in srgb, var(--sn-color-primary) 52%, #fff);
+  border-radius: var(--sn-radius-lg);
+  background: #fff;
+  box-shadow: inset 0.25rem 0 var(--sn-color-primary);
+}
+
+.current-card > p,
+.policy-deadline {
+  grid-column: 1 / -1;
+}
+
+.current-card > p {
+  margin: 0;
+  color: var(--sn-color-primary);
+  font: 760 0.7rem/1.2 var(--sn-font-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.date-tile {
+  display: grid;
+  inline-size: 4.45rem;
+  block-size: 5.7rem;
+  align-content: center;
+  justify-items: center;
+  border: 1px solid color-mix(in srgb, var(--sn-color-primary) 40%, #fff);
+  border-radius: 0.75rem;
+  background: var(--sn-color-surface-emphasis);
+}
+
+.date-tile span,
+.date-tile small {
+  font: 760 0.65rem/1.15 var(--sn-font-display);
+  letter-spacing: 0.09em;
+}
+
+.date-tile strong {
+  font: 780 2rem/1 var(--sn-font-display);
+}
+
+.current-copy h3 {
+  margin: 0;
+  color: var(--sn-color-text-strong);
+  font: 720 var(--sn-type-heading-sm) / 1.2 var(--sn-font-display);
+}
+
+dl {
+  display: grid;
+  gap: 0.5rem;
+  margin: 1rem 0 0;
+}
+
+dl div {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  gap: 0.4rem;
+}
+
+dt {
+  color: var(--sn-color-text-muted);
+  font-size: 0.75rem;
+}
+
+dd {
+  margin: 0;
+  color: var(--sn-color-text-strong);
+  font-size: 0.85rem;
+  font-weight: 650;
+}
+
+.policy-deadline {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  align-self: end;
+  padding: 0.65rem 0.75rem;
+  margin-block-start: auto;
+  border-radius: var(--sn-radius-md);
+  color: var(--sn-color-text-muted);
+  background: var(--sn-color-canvas);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+@media (max-width: 64rem) {
+  .current-card {
+    min-block-size: auto;
+  }
+}
+
+@media (max-width: 44rem) {
+  .current-card {
+    grid-template-columns: 1fr;
+  }
+
+  .current-card > p,
+  .policy-deadline {
+    grid-column: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  .current-card {
+    border-color: CanvasText;
+  }
+}

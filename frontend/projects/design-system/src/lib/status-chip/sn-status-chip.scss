@@ -1,0 +1,67 @@
+:host {
+  display: inline-flex;
+  max-inline-size: 100%;
+}
+
+.sn-status-chip {
+  --sn-chip-background: var(--sn-color-status-neutral-surface, #edf2f3);
+  --sn-chip-border: var(--sn-color-status-neutral-border, #b8c8cc);
+  --sn-chip-foreground: var(--sn-color-status-neutral-text, #334f57);
+
+  display: inline-flex;
+  min-block-size: 1.75rem;
+  max-inline-size: 100%;
+  align-items: center;
+  gap: var(--sn-space-1, 0.25rem);
+  padding: 0.25rem 0.625rem;
+  border: 1px solid var(--sn-chip-border);
+  border-radius: var(--sn-radius-pill, 999px);
+  background: var(--sn-chip-background);
+  color: var(--sn-chip-foreground);
+  font-family: var(--sn-font-body, 'Source Sans 3', sans-serif);
+  font-size: var(--sn-type-label, 0.8125rem);
+  font-weight: 650;
+  line-height: 1.15;
+}
+
+.sn-status-chip[data-tone='success'] {
+  --sn-chip-background: var(--sn-color-status-success-surface, #e1f5e9);
+  --sn-chip-border: var(--sn-color-status-success-border, #87c7a2);
+  --sn-chip-foreground: var(--sn-color-status-success-text, #145b38);
+}
+
+.sn-status-chip[data-tone='info'] {
+  --sn-chip-background: var(--sn-color-status-info-surface, #e2f2fa);
+  --sn-chip-border: var(--sn-color-status-info-border, #8fc2dc);
+  --sn-chip-foreground: var(--sn-color-status-info-text, #134f73);
+}
+
+.sn-status-chip[data-tone='warning'] {
+  --sn-chip-background: var(--sn-color-status-warning-surface, #fff2cc);
+  --sn-chip-border: var(--sn-color-status-warning-border, #d8b75e);
+  --sn-chip-foreground: var(--sn-color-status-warning-text, #654600);
+}
+
+.sn-status-chip[data-tone='danger'] {
+  --sn-chip-background: var(--sn-color-status-danger-surface, #fde8eb);
+  --sn-chip-border: var(--sn-color-status-danger-border, #dfa0aa);
+  --sn-chip-foreground: var(--sn-color-status-danger-text, #842333);
+}
+
+.sn-status-chip[data-tone='pending'] {
+  --sn-chip-background: var(--sn-color-status-pending-surface, #eeeafd);
+  --sn-chip-border: var(--sn-color-status-pending-border, #b7a9df);
+  --sn-chip-foreground: var(--sn-color-status-pending-text, #544184);
+}
+
+.sn-status-chip__label {
+  overflow-wrap: anywhere;
+}
+
+@media (forced-colors: active) {
+  .sn-status-chip {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}

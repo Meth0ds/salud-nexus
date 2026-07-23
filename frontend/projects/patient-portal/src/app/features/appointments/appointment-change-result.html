@@ -1,0 +1,46 @@
+<section tabindex="-1" role="status" aria-labelledby="change-result-title">
+  <span class="result-icon" aria-hidden="true">
+    <sn-icon [name]="mode() === 'reschedule' ? 'event_available' : 'event_busy'" [size]="38" />
+  </span>
+  <p class="sn-eyebrow">Operación confirmada por el centro</p>
+  <h2 id="change-result-title">
+    {{ mode() === 'reschedule' ? 'Cita cambiada' : 'Cita cancelada' }}
+  </h2>
+  @if (mode() === 'reschedule') {
+    <p>
+      Tu nueva cita es el <strong>{{ after().dateLabel }}</strong> de
+      <strong>{{ after().timeLabel }}</strong
+      >.
+    </p>
+    <div class="result-continuity" aria-label="Resumen del cambio confirmado">
+      <span
+        ><small>Antes</small
+        ><strong>{{ before().dateLabel }} · {{ before().timeLabel }}</strong></span
+      >
+      <sn-icon name="arrow_forward" [size]="22" aria-hidden="true" />
+      <span
+        ><small>Ahora</small
+        ><strong>{{ after().dateLabel }} · {{ after().timeLabel }}</strong></span
+      >
+    </div>
+  } @else {
+    <p>
+      La cita del <strong>{{ before().dateLabel }}</strong> se ha trasladado al historial y su hueco
+      ha quedado liberado.
+    </p>
+    <aside class="result-note">
+      <sn-icon name="verified" [size]="20" /> La cancelación ha quedado registrada con la versión
+      {{ after().version }}.
+    </aside>
+  }
+  @if (isDemo()) {
+    <aside class="demo-note">
+      <sn-icon name="science" [size]="20" /> Resultado sintético: solo existe durante esta sesión de
+      demostración.
+    </aside>
+  }
+  <div class="result-actions">
+    <a matButton="filled" routerLink="/citas/detalle">Ver detalle actualizado</a>
+    <a matButton="outlined" routerLink="/citas">Volver a mis citas</a>
+  </div>
+</section>

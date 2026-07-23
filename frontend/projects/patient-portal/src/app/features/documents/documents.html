@@ -1,0 +1,181 @@
+<div class="sn-patient-page">
+  <header class="sn-page-header">
+    <div>
+      <p class="sn-eyebrow">Archivo personal</p>
+      <h1>Documentos</h1>
+      <p>Revisa metadatos y contenido publicado por el centro para este perfil sintético.</p>
+    </div>
+  </header>
+
+  <p class="sn-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+  <aside class="download-boundary">
+    <sn-icon name="shield_lock" [size]="22" />
+    <div>
+      <strong>{{ isDemo ? 'La demo no genera descargas' : 'Descargas protegidas' }}</strong>
+      <span>
+        {{
+          isDemo
+            ? 'Puedes revisar el flujo sin crear ningún archivo local.'
+            : 'Cada descarga requiere una autorización temporal de un solo uso y queda auditada.'
+        }}
+      </span>
+    </div>
+  </aside>
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Cargando tus documentos"
+          description="Consultamos el archivo sintético de la demostración."
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="Aún no hay documentos"
+          description="Los documentos publicados por el centro aparecerán aquí."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudieron cargar los documentos"
+          description="No se ha iniciado ninguna descarga. Inténtalo de nuevo."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="Archivo restringido"
+          description="El centro debe validar tu relación con este perfil antes de mostrar documentos."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        <div class="documents-layout sn-reveal">
+          <section class="documents-panel" aria-labelledby="documents-list-title">
+            <div class="sn-section-heading">
+              <div>
+                <p class="sn-eyebrow">Disponibles</p>
+                <h2 id="documents-list-title">Documentos publicados</h2>
+              </div>
+              <sn-status-chip [label]="state.data.length + ' documentos'" tone="info" />
+            </div>
+
+            <ul>
+              @for (document of state.data; track document.id) {
+                <li>
+                  <span class="document-icon" aria-hidden="true"
+                    ><sn-icon name="description" [size]="24"
+                  /></span>
+                  <div>
+                    <h3>{{ document.title }}</h3>
+                    <p>{{ document.categoryLabel }} · {{ document.dateLabel }}</p>
+                  </div>
+                  <span class="format-label">{{ document.format }} · {{ document.sizeLabel }}</span>
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    [attr.aria-label]="'Ver ficha de ' + document.title"
+                    (click)="inspect(document)"
+                  >
+                    Ver ficha
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+
+          <aside class="details-panel" aria-live="polite">
+            @if (selectedDocument(); as document) {
+              <div class="details-heading">
+                <span aria-hidden="true"><sn-icon name="draft" [size]="26" /></span>
+                <button
+                  type="button"
+                  aria-label="Cerrar ficha de documento"
+                  (click)="closeDetails()"
+                >
+                  <sn-icon name="close" [size]="20" />
+                </button>
+              </div>
+              <p class="sn-eyebrow">Ficha segura</p>
+              <h2>{{ document.title }}</h2>
+              <dl>
+                <div>
+                  <dt>Tipo</dt>
+                  <dd>{{ document.categoryLabel }}</dd>
+                </div>
+                <div>
+                  <dt>Publicado</dt>
+                  <dd>{{ document.dateLabel }}</dd>
+                </div>
+                <div>
+                  <dt>Centro</dt>
+                  <dd>{{ document.centre }}</dd>
+                </div>
+                <div>
+                  <dt>Formato</dt>
+                  <dd>{{ document.format }} · {{ document.sizeLabel }}</dd>
+                </div>
+                <div>
+                  <dt>Integridad</dt>
+                  <dd>Verificada · versión {{ document.versionNumber }}</dd>
+                </div>
+              </dl>
+              <p class="details-note">
+                El servidor vuelve a comprobar tu sesión, la publicación y el hash del archivo antes
+                de entregarlo.
+              </p>
+              <button
+                matButton="filled"
+                type="button"
+                data-testid="document-download"
+                [disabled]="!document.canDownload || authorizingDocumentId() !== undefined"
+                (click)="requestDownload(document)"
+              >
+                <sn-icon
+                  [name]="
+                    authorizingDocumentId() === document.id ? 'progress_activity' : 'download'
+                  "
+                  [size]="19"
+                />
+                {{
+                  authorizingDocumentId() === document.id
+                    ? 'Autorizando…'
+                    : isDemo
+                      ? 'Probar descarga segura'
+                      : 'Descargar PDF'
+                }}
+              </button>
+              @if (downloadNotice(); as notice) {
+                <p
+                  class="download-notice"
+                  [class.download-notice--error]="notice.kind === 'error'"
+                  [attr.role]="notice.kind === 'error' ? 'alert' : 'status'"
+                >
+                  <sn-icon
+                    [name]="notice.kind === 'error' ? 'info' : 'verified_user'"
+                    [size]="19"
+                  />
+                  {{ notice.message }}
+                </p>
+              }
+            } @else {
+              <span class="details-placeholder-icon" aria-hidden="true"
+                ><sn-icon name="touch_app" [size]="30"
+              /></span>
+              <h2>Selecciona un documento</h2>
+              <p>Verás su ficha sin iniciar una descarga ni guardar contenido en el navegador.</p>
+            }
+          </aside>
+        </div>
+      }
+    }
+  }
+</div>

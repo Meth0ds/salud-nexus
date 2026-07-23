@@ -1,0 +1,79 @@
+- generic [ref=f2e59]:
+  - link "Saltar al contenido" [ref=f2e60] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e61]:
+    - banner [ref=f2e62]:
+      - link "Salud Nexus, ir al inicio" [ref=f2e63] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e67]:
+          - strong [ref=f2e68]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=f2e70] [cursor=pointer]: LM
+    - main [ref=f2e72]:
+      - generic [ref=f2e251]:
+        - link [ref=f2e252] [cursor=pointer]:
+          - /url: /citas
+          - generic [ref=f2e253]: arrow_back
+          - text: Volver a mis citas
+        - generic [ref=f2e256]:
+          - paragraph [ref=f2e257]: Reserva guiada
+          - heading "Pedir una cita" [level=1] [ref=f2e258]
+          - paragraph [ref=f2e259]: Cuatro pasos breves. La disponibilidad y confirmación son sintéticas en esta demo.
+        - paragraph [ref=f2e260]: "Paso 3 de 4: Fecha y modalidad."
+        - generic [ref=f2e261]:
+          - navigation "Pasos para pedir una cita" [ref=f2e262]:
+            - list [ref=f2e263]:
+              - listitem [ref=f2e264]:
+                - generic [ref=f2e265]: check
+              - listitem [ref=f2e266]:
+                - generic [ref=f2e267]: check
+              - listitem [ref=f2e268]:
+                - generic [ref=f2e269]: "3"
+              - listitem [ref=f2e270]:
+                - generic [ref=f2e271]: "4"
+          - generic [ref=f2e272]:
+            - group "Selecciona fecha y modalidad" [ref=f2e313]:
+              - paragraph [ref=f2e315]: Las franjas son ejemplos y no bloquean una agenda externa.
+              - generic [ref=f2e318]:
+                - generic [ref=f2e319]:
+                  - text: Fecha y hora
+                  - generic [ref=f2e320]: "*"
+                - combobox "Fecha y hora" [ref=f2e322] [cursor=pointer]:
+                  - option "Selecciona una franja" [selected]
+                  - option "Mié 29 jul · 11:30–12:00"
+                  - option "Jue 30 jul · 09:00–09:30"
+              - group "Modalidad" [ref=f2e324]:
+                - generic [ref=f2e326]:
+                  - radio "Presencial En el centro seleccionado" [checked] [ref=f2e327]
+                  - generic [ref=f2e328] [cursor=pointer]:
+                    - generic [ref=f2e329]: location_on
+                    - strong [ref=f2e331]: Presencial
+                    - generic [ref=f2e332]: En el centro seleccionado
+                - generic [ref=f2e333]:
+                  - radio "Videoconsulta Acceso seguro desde el portal" [ref=f2e334]
+                  - generic [ref=f2e335] [cursor=pointer]:
+                    - generic [ref=f2e336]: videocam
+                    - strong [ref=f2e338]: Videoconsulta
+                    - generic [ref=f2e339]: Acceso seguro desde el portal
+            - generic [ref=f2e287]:
+              - button "Atrás" [ref=f2e307]
+              - button "Revisar cita" [disabled]:
+                - generic:
+                  - text: Revisar cita
+                  - generic: arrow_forward
+    - navigation "Navegación principal móvil" [ref=f2e229]:
+      - link "Inicio" [ref=f2e230] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e231]: space_dashboard
+      - link "Citas" [ref=f2e234] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=f2e235]: calendar_month
+      - link "Medicación" [ref=f2e238] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=f2e239]: medication
+      - link "Documentos" [ref=f2e242] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=f2e243]: folder_open
+      - link "Privacidad" [ref=f2e246] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=f2e247]: shield_lock

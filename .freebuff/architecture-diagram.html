@@ -1,0 +1,1582 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Salud Nexus — Arquitectura Completa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-deep: #060b18;
+    --bg-panel: #0c1428;
+    --bg-card: #111c36;
+    --bg-card-hover: #162244;
+    --bg-elevated: #1a2850;
+    --border-subtle: #1e2d56;
+    --border-active: #2d4a8a;
+    --ink-primary: #e8edf8;
+    --ink-secondary: #9db2d8;
+    --ink-muted: #5c7096;
+    --accent-teal: #2dd4bf;
+  --accent-cyan: #22d3ee;
+    --accent-blue: #60a5fa;
+    --accent-purple: #a78bfa;
+    --accent-rose: #fb7185;
+    --accent-amber: #fbbf24;
+    --accent-green: #4ade80;
+    --accent-orange: #fb923c;
+    --module-identity: #60a5fa;
+    --module-org: #a78bfa;
+    --module-patients: #4ade80;
+    --module-scheduling: #fbbf24;
+    --module-medication: #fb7185;
+    --module-documents: #fb923c;
+    --module-audit: #f472b6;
+    --module-stub: #5c7096;
+    --font-display: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --shadow-card: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.24);
+    --shadow-elevated: 0 4px 16px rgba(0,0,0,.5), 0 1px 4px rgba(0,0,0,.3);
+    --transition-fast: 150ms ease;
+    --transition-smooth: 250ms cubic-bezier(.4,0,.2,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--ink-primary);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(6, 11, 24, .85);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    height: 52px;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+
+  .nav-brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--accent-teal);
+    white-space: nowrap;
+    margin-right: 20px;
+    letter-spacing: -.2px;
+  }
+  .nav-brand span { color: var(--ink-primary); font-weight: 400; }
+
+  .nav-link {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    transition: color var(--transition-fast), background var(--transition-fast), outline-color var(--transition-fast);
+  }
+  .nav-link:hover, .nav-link.active { color: var(--ink-primary); background: var(--bg-card); }
+  .nav-link:focus-visible { outline: 2px solid var(--accent-teal); outline-offset: 2px; }
+
+  /* ── Layout ── */
+  .page { max-width: 1340px; margin: 0 auto; padding: 0 24px 80px; }
+
+  .section {
+    margin-top: 64px;
+    scroll-margin-top: 72px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+  }
+  .section-number {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent-teal);
+    background: rgba(45, 212, 191, .1);
+    border: 1px solid rgba(45, 212, 191, .2);
+    padding: 2px 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 600;
+    letter-spacing: -.3px;
+  }
+  .section-sub {
+    color: var(--ink-secondary);
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 64px 0 48px;
+    text-align: center;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--accent-teal);
+    background: rgba(45, 212, 191, .08);
+    border: 1px solid rgba(45, 212, 191, .15);
+    padding: 4px 14px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+    font-family: var(--font-mono);
+    letter-spacing: .3px;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 700;
+    letter-spacing: -.8px;
+    line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent-teal) 0%, var(--accent-cyan) 50%, var(--accent-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero-desc {
+    font-size: 17px;
+    color: var(--ink-secondary);
+    max-width: 640px;
+    margin: 0 auto 32px;
+    line-height: 1.7;
+  }
+
+  /* ── Metric pills ── */
+  .metrics {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+  .metric {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 14px 22px;
+    text-align: center;
+    min-width: 110px;
+    transition: border-color var(--transition-smooth), transform var(--transition-smooth);
+  }
+  .metric:hover { border-color: var(--border-active); transform: translateY(-1px); }
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--accent-teal);
+    letter-spacing: -.3px;
+  }
+  .metric-label {
+    font-size: 11px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+
+  /* ── Cards & grids ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 22px 26px;
+    transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+  }
+  .card:hover { border-color: var(--border-active); box-shadow: var(--shadow-elevated); }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 18px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+
+  /* ── Module cards ── */
+  .module-card {
+    position: relative;
+    overflow: hidden;
+  }
+  .module-card .mod-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    flex-shrink: 0;
+  }
+  .module-card .mod-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+  }
+  .module-card .mod-desc {
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+    line-height: 1.5;
+  }
+  .module-card .mod-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .module-card .mod-tag {
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 500;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    color: var(--ink-muted);
+    font-family: var(--font-mono);
+  }
+  .module-card .mod-tag.active { color: var(--accent-teal); border-color: rgba(45,212,191,.25); background: rgba(45,212,191,.06); }
+  .module-card .mod-badge {
+    position: absolute;
+    top: 14px; right: 14px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+  .badge-stub { background: rgba(255,255,255,.04); color: var(--ink-muted); border: 1px solid rgba(255,255,255,.06); }
+  .badge-live { background: rgba(45,212,191,.1); color: var(--accent-teal); border: 1px solid rgba(45,212,191,.15); }
+
+  /* ── Architecture visualization ── */
+  .arch-viz {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xl);
+    padding: 32px 24px;
+    overflow: auto;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+    min-width: 900px;
+  }
+  .arch-row:last-child { margin-bottom: 0; }
+
+  .arch-layer-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: .8px;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    padding: 8px 4px;
+    border-right: 1px solid var(--border-subtle);
+    margin-right: 8px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .arch-node {
+    padding: 10px 16px;
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    border: 1px solid transparent;
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+    cursor: default;
+    position: relative;
+    min-width: 90px;
+  }
+  .arch-node { cursor: pointer; }
+  .arch-node:hover { transform: translateY(-2px); box-shadow: var(--shadow-elevated); z-index: 2; }
+  .arch-node .nl { font-size: 10.5px; color: var(--ink-muted); font-weight: 400; display: block; margin-top: 2px; }
+
+  .arch-node.frontend { background: #1e1b2e; border-color: #3d3566; color: #d4cdf0; }
+  .arch-node.frontend:hover { border-color: #6c5ce7; }
+  .arch-node.api { background: #162032; border-color: #234566; color: #b8d8f0; }
+  .arch-node.api:hover { border-color: #60a5fa; }
+  .arch-node.backend { background: #0f1f24; border-color: #1a4a52; color: #b8ece8; }
+  .arch-node.backend:hover { border-color: #2dd4bf; }
+  .arch-node.data { background: #1a1714; border-color: #3d3020; color: #f0d8b0; }
+  .arch-node.data:hover { border-color: #fbbf24; }
+  .arch-node.infra { background: #16111a; border-color: #30253d; color: #d0b8f0; }
+  .arch-node.infra:hover { border-color: #a78bfa; }
+
+  .arch-arrow {
+    color: var(--ink-muted);
+    font-size: 18px;
+    flex-shrink: 0;
+    margin: 0 2px;
+  }
+  .arch-arrow.solid { color: var(--ink-secondary); }
+  .arch-arrow.event { color: var(--accent-purple); }
+
+  .arch-bracket {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    border: 1px dashed var(--border-subtle);
+    border-radius: var(--radius-lg);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ── Flow diagram ── */
+  .flow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    padding: 20px 0;
+    min-width: 700px;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 600px;
+  }
+  .flow-step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    color: var(--accent-teal);
+    flex-shrink: 0;
+  }
+  .flow-step-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 16px;
+    flex: 1;
+    font-size: 13px;
+  }
+  .flow-step-content strong { color: var(--accent-teal); font-weight: 600; }
+  .flow-connector {
+    width: 2px;
+    height: 20px;
+    background: var(--border-subtle);
+    margin-left: 28px;
+    align-self: flex-start;
+  }
+
+  /* ── Infrastructure stack ── */
+  .infra-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  .infra-layer {
+    width: 100%;
+    max-width: 700px;
+    padding: 14px 20px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    font-weight: 500;
+    font-size: 13.5px;
+  }
+  .infra-layer.edge { background: #1a1714; border: 1px solid #3d3020; color: #f0d8b0; width: 100%; }
+  .infra-layer.app { background: #0f1f24; border: 1px solid #1a4a52; color: #b8ece8; width: 88%; }
+  .infra-layer.data-tier { background: #16111a; border: 1px solid #30253d; color: #d0b8f0; width: 68%; }
+  .infra-layer .il-name { font-weight: 600; font-family: var(--font-display); font-size: 15px; }
+  .infra-layer .il-detail { font-size: 11px; color: rgba(255,255,255,.4); margin-top: 2px; font-family: var(--font-mono); }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 2px; margin-bottom: 20px; flex-wrap: wrap; }
+  .tab-btn {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    color: var(--ink-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+  }
+  .tab-btn:first-child:not(:only-child) { border-radius: var(--radius-md) var(--radius-sm) var(--radius-sm) var(--radius-md); }
+  .tab-btn:last-child:not(:only-child) { border-radius: var(--radius-sm) var(--radius-md) var(--radius-md) var(--radius-sm); }
+  .tab-btn:hover { color: var(--ink-primary); border-color: var(--border-active); }
+  .tab-btn:focus-visible { outline: 2px solid var(--accent-teal); outline-offset: 2px; }
+  .tab-btn.active { background: var(--accent-teal); color: #000; border-color: var(--accent-teal); font-weight: 600; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Connections table ── */
+  .conn-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .conn-table th {
+    text-align: left;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--ink-muted);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .conn-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255,255,255,.03);
+    vertical-align: top;
+  }
+  .conn-table tr:hover td { background: rgba(255,255,255,.01); }
+  .conn-badge {
+    display: inline-block;
+    font-size: 10.5px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 500;
+    font-family: var(--font-mono);
+  }
+  .conn-solid { background: rgba(96,165,250,.1); color: var(--accent-blue); border: 1px solid rgba(96,165,250,.2); }
+  .conn-event { background: rgba(167,139,250,.1); color: var(--accent-purple); border: 1px solid rgba(167,139,250,.2); }
+  .conn-http { background: rgba(45,212,191,.1); color: var(--accent-teal); border: 1px solid rgba(45,212,191,.2); }
+  .conn-auth { background: rgba(251,191,36,.1); color: var(--accent-amber); border: 1px solid rgba(251,191,36,.2); }
+  .conn-future { background: rgba(255,255,255,.04); color: var(--ink-muted); border: 1px solid rgba(255,255,255,.06); }
+
+  /* ── DB Schema visualization ── */
+  .db-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .db-table {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color var(--transition-fast);
+  }
+  .db-table:hover { border-color: var(--border-active); }
+  .db-table-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 8px 12px;
+    background: var(--bg-elevated);
+    color: var(--accent-amber);
+    letter-spacing: .2px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .db-table-cols {
+    padding: 6px 0;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  .db-col {
+    padding: 3px 12px;
+    color: var(--ink-secondary);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .db-col .col-type { color: var(--ink-muted); font-size: 10px; }
+  .db-col.pk { color: var(--accent-teal); }
+
+  /* ── Legend ── */
+  .legend-grid {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+  }
+  .legend-line {
+    width: 24px;
+    height: 2px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .legend-line.solid { background: var(--accent-blue); }
+  .legend-line.dashed { background: transparent; border-top: 2px dashed var(--accent-purple); height: 0; }
+  .legend-line.http { background: var(--accent-teal); height: 3px; }
+  .legend-line.auth { background: var(--accent-amber); }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: 80px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--ink-muted);
+  }
+  .footer a { color: var(--accent-teal); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── Animations ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    .arch-node:hover { transform: none; }
+    .metric:hover { transform: none; }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .page { padding: 0 14px 60px; }
+    .section { margin-top: 44px; }
+    .hero { padding: 40px 0 32px; }
+    .section-title { font-size: 22px; }
+    .nav { padding: 0 12px; gap: 2px; height: 44px; }
+    .nav-brand { font-size: 14px; margin-right: 10px; }
+    .nav-link { font-size: 11px; padding: 4px 10px; }
+    .arch-row { min-width: 600px; gap: 6px; }
+    .arch-node { padding: 8px 12px; font-size: 11px; min-width: 70px; }
+    .arch-viz { padding: 18px 12px; }
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .db-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .flow-container { min-width: auto; }
+    .flow-step { max-width: 100%; }
+    .infra-layer.app { width: 94%; }
+    .infra-layer.data-tier { width: 82%; }
+  }
+
+  @media (max-width: 480px) {
+    .metrics { gap: 8px; }
+    .metric { padding: 10px 14px; min-width: 80px; }
+    .metric-value { font-size: 22px; }
+    .hero h1 { font-size: 26px; }
+    .hero-desc { font-size: 14px; }
+    .tabs { gap: 1px; }
+    .tab-btn { font-size: 11px; padding: 6px 12px; }
+    .card { padding: 14px 16px; }
+    .arch-node { font-size: 10px; padding: 6px 10px; min-width: 60px; }
+  }
+
+  /* ── Print ── */
+  @media print {
+    .nav { position: static; }
+    body { background: #fff; color: #000; }
+    .card, .arch-viz { border-color: #ccc; background: #f9f9f9; }
+    .reveal { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav class="nav" id="nav">
+  <a href="#hero" class="nav-brand">Salud<em>Nexus</em> <span>· Arquitectura</span></a>
+  <a href="#overview" class="nav-link">Overview</a>
+  <a href="#backend" class="nav-link">Backend</a>
+  <a href="#frontend" class="nav-link">Frontend</a>
+  <a href="#infrastructure" class="nav-link">Infra</a>
+  <a href="#database" class="nav-link">Database</a>
+  <a href="#flows" class="nav-link">Flujos</a>
+  <a href="#connections" class="nav-link">Conexiones</a>
+</nav>
+
+<div class="page">
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section class="hero reveal" id="hero">
+  <div class="hero-badge">● v0.5 — Pre-production</div>
+  <h1>Plataforma <em>modular</em> de gestión sanitaria</h1>
+  <p class="hero-desc">
+    Monolito modular Laravel 13 + workspace Angular 22 con API REST OpenAPI 3.1,
+    PostgreSQL 18, Redis 8, auditoría append-only con hash chain, y despliegue
+    Docker endurecido. Diseñada para un único centro sanitario por despliegue con
+    seguridad, privacidad y trazabilidad desde el diseño.
+  </p>
+  <div class="metrics">
+    <div class="metric"><div class="metric-value">9</div><div class="metric-label">Módulos backend</div></div>
+    <div class="metric"><div class="metric-value">8</div><div class="metric-label">Proyectos Angular</div></div>
+    <div class="metric"><div class="metric-value">3</div><div class="metric-label">Aplicaciones web</div></div>
+    <div class="metric"><div class="metric-value">28+</div><div class="metric-label">Tablas PostgreSQL</div></div>      <div class="metric"><div class="metric-value">9</div><div class="metric-label">Servicios Docker</div></div>
+    <div class="metric"><div class="metric-value">12</div><div class="metric-label">Decisiones ADR</div></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 1. OVERVIEW ═══════════════ -->
+<section class="section reveal" id="overview">
+  <div class="section-header">
+    <span class="section-number">01</span>
+    <div><h2 class="section-title">Vista general de la arquitectura</h2>
+    <p class="section-sub">Tres capas principales comunicadas mediante API REST, sesiones HttpOnly y colas Redis</p></div>
+  </div>
+
+  <div class="arch-viz">
+    <!-- Frontend layer -->
+    <div class="arch-row">
+      <span class="arch-layer-label">Frontend</span>
+      <div class="arch-bracket">
+        <div class="arch-node frontend">patient-portal<div class="nl">Angular 22</div></div>
+        <div class="arch-node frontend">staff-portal<div class="nl">Angular 22</div></div>
+        <div class="arch-node frontend">design-lab<div class="nl">Mockups · Motion</div></div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <span class="arch-layer-label"></span>
+      <span class="arch-arrow solid">▼ HTTP + Sanctum + CSRF ▼</span>
+    </div>
+    <!-- API Proxy -->
+    <div class="arch-row">
+      <span class="arch-layer-label">Edge</span>
+      <div class="arch-node api">api-proxy<div class="nl">NGINX · Reverse Proxy</div></div>
+      <span class="arch-arrow solid">▶</span>
+      <div class="arch-node api">Laravel API<div class="nl">PHP 8.5 · FPM</div></div>
+    </div>
+    <div class="arch-row">
+      <span class="arch-layer-label"></span>
+      <span class="arch-arrow solid">▼ Redis · Queue ▼</span>
+    </div>
+    <!-- Backend modules -->
+    <div class="arch-row">
+      <span class="arch-layer-label">Backend</span>
+      <div class="arch-bracket">
+        <div class="arch-node backend">Identity<div class="nl">Sesiones · OIDC</div></div>
+        <div class="arch-node backend">Organizations<div class="nl">Centro único</div></div>
+        <div class="arch-node backend">Patients<div class="nl">Portal · Perfil</div></div>
+        <div class="arch-node backend">Scheduling<div class="nl">Citas · Agendas</div></div>
+        <div class="arch-node backend">Medication<div class="nl">Registro · Conciliación</div></div>
+        <div class="arch-node backend">Documents<div class="nl">PDF · Verificación</div></div>
+        <div class="arch-node backend">Notifications<div class="nl">Outbox · Stub</div></div>
+        <div class="arch-node backend">Privacy<div class="nl">Derechos · Stub</div></div>
+        <div class="arch-node backend">Audit<div class="nl">Hash chain · Append-only</div></div>
+      </div>
+    </div>
+    <div class="arch-row">
+      <span class="arch-layer-label"></span>
+      <span class="arch-arrow solid">▼ PostgreSQL · Object Storage ▼</span>
+    </div>
+    <!-- Data layer -->
+    <div class="arch-row">
+      <span class="arch-layer-label">Data</span>
+      <div class="arch-node data">PostgreSQL 18<div class="nl">Primaria · checksums</div></div>
+      <div class="arch-node data">Redis 8<div class="nl">Cache · Colas · Sesiones</div></div>
+      <div class="arch-node data">Object Storage<div class="nl">Documentos · S3</div></div>
+    </div>
+  </div>
+
+  <div class="legend-grid" style="margin-top:18px;">
+    <div class="legend-item"><span class="legend-line solid"></span> HTTP / API REST</div>
+    <div class="legend-item"><span class="legend-line dashed"></span> Eventos de dominio</div>
+    <div class="legend-item"><span class="legend-line auth"></span> Middleware Sanctum</div>
+    <div class="legend-item"><span class="legend-line http"></span> Colas Redis · Outbox</div>
+  </div>
+</section>
+
+<!-- ═══════════════ 2. BACKEND MODULES ═══════════════ -->
+<section class="section reveal" id="backend">
+  <div class="section-header">
+    <span class="section-number">02</span>
+    <div><h2 class="section-title">Módulos del backend</h2>
+    <p class="section-sub">9 módulos DDD con capas Domain / Application / Infrastructure / Http / Policies</p></div>
+  </div>
+
+  <div class="grid-3">
+    <!-- Identity -->
+    <div class="card module-card">
+      <span class="mod-badge badge-live">Activo</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-identity)"></span>Identity</div>
+      <div class="mod-desc">Autenticación, sesiones BFF, Sanctum, OIDC, MFA TOTP/passkeys, recuperación de cuenta y gestión de dispositivos. Cookie HttpOnly + CSRF.</div>
+      <div class="mod-tags">
+        <span class="mod-tag active">Session</span>
+        <span class="mod-tag active">Login</span>
+        <span class="mod-tag active">Logout</span>
+        <span class="mod-tag active">CsrfCookie</span>
+        <span class="mod-tag">MFA</span>
+        <span class="mod-tag">OIDC</span>
+      </div>
+    </div>
+
+    <!-- Organizations -->
+    <div class="card module-card">
+      <span class="mod-badge badge-stub">Stub</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-org)"></span>Organizations</div>
+      <div class="mod-desc">Centro sanitario único por despliegue. Gestión de centros, unidades, salas, recursos y especialidades. Estado operativo.</div>
+      <div class="mod-tags">
+        <span class="mod-tag">CenterStatus</span>
+        <span class="mod-tag">OrganizationStatus</span>
+        <span class="mod-tag">Resources</span>
+      </div>
+    </div>
+
+    <!-- Patients -->
+    <div class="card module-card">
+      <span class="mod-badge badge-live">Activo</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-patients)"></span>Patients</div>
+      <div class="mod-desc">Ficha del paciente, identificadores, representantes, portal link, fusión controlada, restricciones de acceso, dashboard y perfil.</div>
+      <div class="mod-tags">
+        <span class="mod-tag active">Dashboard</span>
+        <span class="mod-tag active">Profile</span>
+        <span class="mod-tag active">BookingOptions</span>
+        <span class="mod-tag">Representatives</span>
+        <span class="mod-tag">Merge</span>
+      </div>
+    </div>
+
+    <!-- Scheduling -->
+    <div class="card module-card">
+      <span class="mod-badge badge-live">Activo</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-scheduling)"></span>Scheduling</div>
+      <div class="mod-desc">Motor de disponibilidad, reserva idempotente, cancelación y reprogramación con historial versionado. Slots, asignaciones activas y eventos de dominio.</div>
+      <div class="mod-tags">
+        <span class="mod-tag active">Book</span>
+        <span class="mod-tag active">Reschedule</span>
+        <span class="mod-tag active">Cancel</span>
+        <span class="mod-tag active">Find</span>
+        <span class="mod-tag active">ChangePolicy</span>
+        <span class="mod-tag">WaitingList</span>
+      </div>
+    </div>
+
+    <!-- Medication -->
+    <div class="card module-card">
+      <span class="mod-badge badge-live">Activo</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-medication)"></span>Medication</div>
+      <div class="mod-desc">Registro autoritativo + declaraciones del paciente. Conciliación, discrepancias y solicitudes de renovación. Separación clínica/paciente.</div>
+      <div class="mod-tags">
+        <span class="mod-tag active">Declare</span>
+        <span class="mod-tag active">List</span>
+        <span class="mod-tag active">Find</span>
+        <span class="mod-tag active">Renewal</span>
+        <span class="mod-tag">Reconciliation</span>
+      </div>
+    </div>
+
+    <!-- Documents -->
+    <div class="card module-card">
+      <span class="mod-badge badge-live">Activo</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-documents)"></span>Documents</div>
+      <div class="mod-desc">Plantillas, generación PDF, hash SHA-256, publicación, descarga efímera con grants tokenizados, versionado y verificación pública.</div>
+      <div class="mod-tags">
+        <span class="mod-tag active">List</span>
+        <span class="mod-tag active">FindPublished</span>
+        <span class="mod-tag active">Verify</span>
+        <span class="mod-tag active">Download</span>
+        <span class="mod-tag">Signature</span>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="card module-card">
+      <span class="mod-badge badge-stub">Stub</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-stub)"></span>Notifications</div>
+      <div class="mod-desc">Outbox transaccional, plantillas multi-canal (email, SMS, push, bandeja interna), preferencias y supresión. Planificado para Fase 3+.</div>
+      <div class="mod-tags">
+        <span class="mod-tag">Outbox</span>
+        <span class="mod-tag">Templates</span>
+        <span class="mod-tag">Preferences</span>
+      </div>
+    </div>
+
+    <!-- Privacy -->
+    <div class="card module-card">
+      <span class="mod-badge badge-stub">Stub</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-stub)"></span>Privacy</div>
+      <div class="mod-desc">Derechos ARCO, consentimientos, finalidades, restricciones del paciente, break-glass, historial de accesos y portabilidad. Fase 5.</div>
+      <div class="mod-tags">
+        <span class="mod-tag">Consent</span>
+        <span class="mod-tag">AccessLog</span>
+        <span class="mod-tag">BreakGlass</span>
+        <span class="mod-tag">Portability</span>
+      </div>
+    </div>
+
+    <!-- Audit -->
+    <div class="card module-card">
+      <span class="mod-badge badge-live">Activo</span>
+      <div class="mod-name"><span class="mod-dot" style="background:var(--module-audit)"></span>Audit</div>
+      <div class="mod-desc">Registro inmutable append-only con hash chain SHA-256 verificable. Cuenta DB separada, exportación WORM y alertas de integridad.</div>
+      <div class="mod-tags">
+        <span class="mod-tag active">AuditWriter</span>
+        <span class="mod-tag active">ChainVerifier</span>
+        <span class="mod-tag active">HashChain</span>
+        <span class="mod-tag active">AppendOnly</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px; background:var(--bg-panel);">
+    <strong style="color:var(--accent-teal);">Acoplamiento entre módulos:</strong>
+    <span style="color:var(--ink-secondary); font-size:13px;">
+      Cero imports estáticos cruzados (<code style="color:var(--accent-cyan);">use App\Modules\X\…</code> desde Y).
+      El acoplamiento real es: eventos de dominio (publicados por Scheduling/Medication/Documents → escuchados por Audit),
+      middleware Sanctum (todos → Identity), y puertos DI (Shared → todos).
+      <strong>El frontend orquesta las llamadas a cada módulo directamente.</strong>
+    </span>
+  </div>
+</section>
+
+<!-- ═══════════════ 3. FRONTEND ═══════════════ -->
+<section class="section reveal" id="frontend">
+  <div class="section-header">
+    <span class="section-number">03</span>
+    <div><h2 class="section-title">Workspace Angular</h2>
+    <p class="section-sub">8 proyectos TypeScript strict: 3 aplicaciones + 5 librerías compartidas con diseño Material 22</p></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab-apps" role="tab" aria-selected="true">Aplicaciones</button>
+    <button class="tab-btn" data-tab="tab-libs" role="tab" aria-selected="false">Librerías</button>
+    <button class="tab-btn" data-tab="tab-deps" role="tab" aria-selected="false">Dependencias</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-apps" role="tabpanel">
+    <div class="grid-2">
+      <div class="card module-card" style="--accent: var(--accent-teal)">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-teal)"></span>patient-portal</div>
+        <div class="mod-desc">Portal del paciente. Interfaz sencilla, móvil-first, accesibilidad WCAG 2.2 AA. Flujos guiados para citas, medicación, documentos y privacidad.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">Appointments</span>
+          <span class="mod-tag active">Medication</span>
+          <span class="mod-tag active">Documents</span>
+          <span class="mod-tag">Privacy</span>
+          <span class="mod-tag">Profile</span>
+        </div>
+      </div>
+      <div class="card module-card">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-blue)"></span>staff-portal</div>
+        <div class="mod-desc">Portal de profesionales y recepción. Alta densidad de información, atajos de teclado, agenda avanzada, sala de espera y administración.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">Agenda</span>
+          <span class="mod-tag active">Reception</span>
+          <span class="mod-tag active">Administration</span>
+          <span class="mod-tag">WaitingRoom</span>
+          <span class="mod-tag">Reports</span>
+        </div>
+      </div>
+      <div class="card module-card" style="grid-column: 1 / -1;">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-purple)"></span>design-lab</div>
+        <div class="mod-desc">Laboratorio de diseño con mockups navegables para cada ruta. Incluye variantes: desktop/móvil, carga, vacío, error, sin permiso, offline, sesión caducada y conflicto. Motion clasificado por propósito (CSS, GSAP Timeline, ScrollTrigger).</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">MockupCanvas</span>
+          <span class="mod-tag active">Overview</span>
+          <span class="mod-tag active">ClinicianWorkspace</span>
+          <span class="mod-tag active">SecurityCenter</span>
+          <span class="mod-tag">Responsive</span>
+          <span class="mod-tag">Motion</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-libs" role="tabpanel">
+    <div class="grid-2">
+      <div class="card module-card">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-cyan)"></span>api-client</div>
+        <div class="mod-desc">Cliente HTTP generado automáticamente desde OpenAPI 3.1 con Orval. Tipado estricto, interceptores y gestión de errores.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">Generated</span>
+          <span class="mod-tag active">OpenAPI 3.1</span>
+          <span class="mod-tag active">Orval</span>
+        </div>
+      </div>
+      <div class="card module-card">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-amber)"></span>auth</div>
+        <div class="mod-desc">Gestión de sesiones BFF: SessionAuth, sessionExpiryInterceptor, renovación automática, manejo de CSRF y detección de logout.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">SessionAuth</span>
+          <span class="mod-tag active">ExpiryInterceptor</span>
+        </div>
+      </div>
+      <div class="card module-card">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-green)"></span>design-system</div>
+        <div class="mod-desc">Sistema de diseño sobre Angular Material 22 + CDK. Componentes: SnIcon, SnStatusChip, SnMetricCard, SnDataTable, SnTimeline. Tipografía Manrope + Source Sans 3 + Material Symbols.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">SnIcon</span>
+          <span class="mod-tag active">SnStatusChip</span>
+          <span class="mod-tag active">SnMetricCard</span>
+          <span class="mod-tag">SnDataTable</span>
+          <span class="mod-tag">Tokens</span>
+        </div>
+      </div>
+      <div class="card module-card">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-rose)"></span>motion</div>
+        <div class="mod-desc">Animaciones clasificadas: CSS (micro-interactions), GSAP Timeline (onboarding), ScrollTrigger (cronología). Con modo reduced-motion.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">ScrollReveal</span>
+          <span class="mod-tag">GSAP</span>
+          <span class="mod-tag">ReducedMotion</span>
+        </div>
+      </div>
+      <div class="card module-card">
+        <div class="mod-name"><span class="mod-dot" style="background:var(--accent-orange)"></span>shared</div>
+        <div class="mod-desc">Utilidades transversales: parsePublicId, validaciones, pipes comunes, guards y directivas de accesibilidad.</div>
+        <div class="mod-tags">
+          <span class="mod-tag active">parsePublicId</span>
+          <span class="mod-tag">Validators</span>
+          <span class="mod-tag">Guards</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-deps" role="tabpanel">
+    <div class="arch-viz" style="padding: 20px;">
+      <div class="arch-row" style="min-width: 600px;">
+        <div class="arch-node frontend">patient-portal</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node api">api-client</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">auth</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">design-system</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">motion</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">shared</div>
+      </div>
+      <div class="arch-row" style="min-width: 600px;">
+        <div class="arch-node frontend">staff-portal</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node api">api-client</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">auth</div>
+      </div>
+      <div class="arch-row" style="min-width: 600px;">
+        <div class="arch-node frontend">design-lab</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">design-system</div>
+        <span class="arch-arrow solid">→</span>
+        <div class="arch-node frontend">motion</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-muted);margin-top:10px;text-align:center;">
+      peerDependencies declaradas en <code>projects/*/package.json</code>. Flechas sólidas = dependencia directa.
+    </p>
+  </div>
+</section>  <!-- ═══════════════ 4. INFRASTRUCTURE ═══════════════ -->
+<section class="section reveal" id="infrastructure">
+  <div class="section-header">
+    <span class="section-number">04</span>
+    <div><h2 class="section-title">Infraestructura Docker</h2>
+    <p class="section-sub">6 servicios core + 3 perfiles (design-lab, queue-worker, scheduler) endurecidos con no-new-privileges, cap_drop ALL, read_only root, tmpfs y secretos montados como archivos</p></div>
+  </div>
+
+  <div class="grid-2" style="align-items: start;">
+    <div class="card" style="background:var(--bg-panel);">
+      <div class="infra-stack">
+        <div class="infra-layer edge">
+          <div class="il-name">🌐 Edge Network</div>
+          <div class="il-detail">patient-web :4200 · staff-web :4201 · design-lab :4300 (NGINX)</div>
+        </div>
+        <div class="infra-layer app">
+          <div class="il-name">🔀 api-proxy (NGINX reverse proxy)</div>
+          <div class="il-detail">Forwarded proto · Rate limiting · Body size limits · CSP headers</div>
+        </div>
+        <div class="infra-layer app">
+          <div class="il-name">⚙️ Laravel API (PHP-FPM 8.5)</div>
+          <div class="il-detail">Sanctum sessions · Modular monolith · OpenAPI 3.1 · Problem Details RFC 9457</div>
+        </div>
+        <div class="infra-layer app">
+          <div class="il-name">📨 Queue Worker · ⏰ Scheduler</div>
+          <div class="il-detail">Redis queues · Async PDF gen · Notifications outbox · Cleanup jobs</div>
+        </div>
+        <div class="infra-layer data-tier">
+          <div class="il-name">🗄️ PostgreSQL 18 (Alpine)</div>
+          <div class="il-detail">SCRAM-SHA-256 · data-checksums · WAL · Volume persistente</div>
+        </div>
+        <div class="infra-layer data-tier">
+          <div class="il-name">⚡ Redis 8 (Alpine)</div>
+          <div class="il-detail">AOF everysec · Cache DB 1 · Session DB 0 · Queue default</div>
+        </div>
+        <div class="infra-layer data-tier" style="border-style: dashed;">
+          <div class="il-name">📦 Object Storage (S3-compatible)</div>
+          <div class="il-detail">Documentos · URLs temporales · Server-side encryption</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:8px;">🔒 Hardening aplicado</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12.5px;">
+          <div style="color:var(--accent-green);">✓ no-new-privileges</div>
+          <div style="color:var(--accent-green);">✓ cap_drop ALL</div>
+          <div style="color:var(--accent-green);">✓ read_only rootfs</div>
+          <div style="color:var(--accent-green);">✓ tmpfs /tmp + /storage</div>
+          <div style="color:var(--accent-green);">✓ CPU/MEM/PID limits</div>
+          <div style="color:var(--accent-green);">✓ Docker secrets (files)</div>
+          <div style="color:var(--accent-green);">✓ Healthchecks</div>
+          <div style="color:var(--accent-green);">✓ Internal networks</div>
+          <div style="color:var(--accent-green);">✓ stop_grace_period</div>
+          <div style="color:var(--accent-green);">✓ ARGON2id params</div>
+          <div style="color:var(--accent-green);">✓ SCRAM-SHA-256</div>
+          <div style="color:var(--accent-green);">✓ PG data-checksums</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-family:var(--font-display);font-size:16px;margin-bottom:8px;">🔑 Secretos gestionados</h3>
+        <div style="font-size:12.5px;color:var(--ink-secondary);line-height:1.6;">
+          <code style="color:var(--accent-amber);">APP_KEY</code> — Clave de cifrado de aplicación<br>
+          <code style="color:var(--accent-amber);">AUDIT_INTEGRITY_KEY</code> — HMAC para cadena de auditoría<br>
+          <code style="color:var(--accent-amber);">POSTGRES_PASSWORD</code> — Autenticación base de datos<br>
+          <code style="color:var(--accent-amber);">REDIS_PASSWORD</code> — Autenticación Redis<br>
+          <span style="color:var(--ink-muted);font-size:11px;">Montados como archivos en /run/secrets/, nunca como variables de entorno.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 5. DATABASE ═══════════════ -->
+<section class="section reveal" id="database">
+  <div class="section-header">
+    <span class="section-number">05</span>
+    <div><h2 class="section-title">Esquema de base de datos</h2>
+    <p class="section-sub">PostgreSQL 18 con 8 migraciones, 28+ tablas, restricciones compuestas tenant-safe y checks semánticos</p></div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="db-core" role="tab" aria-selected="true">Núcleo</button>
+    <button class="tab-btn" data-tab="db-booking" role="tab" aria-selected="false">Citas</button>
+    <button class="tab-btn" data-tab="db-clinical" role="tab" aria-selected="false">Clínico</button>
+    <button class="tab-btn" data-tab="db-audit" role="tab" aria-selected="false">Auditoría</button>
+  </div>
+
+  <div class="tab-panel active" id="db-core" role="tabpanel">
+    <div class="db-grid">
+      <div class="db-table">
+        <div class="db-table-name">organizations</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>public_id</span><span class="col-type">UUID UNIQUE</span></div>
+          <div class="db-col"><span>code</span><span class="col-type">VARCHAR(32) UNIQUE</span></div>
+          <div class="db-col"><span>name</span><span class="col-type">VARCHAR(160)</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">ENUM active,inactive</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">centers</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>organization_id</span><span class="col-type">FK → organizations</span></div>
+          <div class="db-col"><span>public_id</span><span class="col-type">UUID UNIQUE</span></div>
+          <div class="db-col"><span>timezone</span><span class="col-type">VARCHAR(64)</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">ENUM</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">patients</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>organization_id</span><span class="col-type">FK</span></div>
+          <div class="db-col"><span>public_id</span><span class="col-type">UUID UNIQUE</span></div>
+          <div class="db-col"><span>record_number</span><span class="col-type">VARCHAR(64)</span></div>
+          <div class="db-col"><span>date_of_birth</span><span class="col-type">DATE</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">ENUM</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">patient_portal_links</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>patient_id</span><span class="col-type">FK UNIQUE</span></div>
+          <div class="db-col"><span>identity_account_id</span><span class="col-type">FK UNIQUE</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="db-booking" role="tabpanel">
+    <div class="db-grid">
+      <div class="db-table">
+        <div class="db-table-name">health_services</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>code, name</span><span class="col-type">VARCHAR</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">appointment_types</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>duration_minutes</span><span class="col-type">SMALLINT 5-480</span></div>
+          <div class="db-col"><span>attendance_mode</span><span class="col-type">ENUM</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">appointment_slots</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>starts_at, ends_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">ENUM open,blocked</span></div>
+          <div class="db-col"><span>UNIQUE(center, starts_at)</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">appointments</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>version</span><span class="col-type">INT DEFAULT 1</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">ENUM 4 valores</span></div>
+          <div class="db-col"><span>starts_at, ends_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">appointment_slot_allocations</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>appointment_id</span><span class="col-type">UNIQUE</span></div>
+          <div class="db-col"><span>slot_id</span><span class="col-type">UNIQUE</span></div>
+          <div class="db-col"><span>—</span><span class="col-type">Race-safe</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">appointment_changes</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>public_id</span><span class="col-type">UUID UNIQUE</span></div>
+          <div class="db-col"><span>transition</span><span class="col-type">cancelled | rescheduled</span></div>
+          <div class="db-col"><span>from_version → to_version</span></div>
+          <div class="db-col"><span>CHECK(version sequence)</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">idempotency_requests</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>UNIQUE(actor, route, key)</span></div>
+          <div class="db-col"><span>expires_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="db-clinical" role="tabpanel">
+    <div class="db-grid">
+      <div class="db-table">
+        <div class="db-table-name">medications</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>id</span><span class="col-type">BIGINT PK</span></div>
+          <div class="db-col"><span>source</span><span class="col-type">professional / patient</span></div>
+          <div class="db-col"><span>name, presentation</span><span class="col-type">VARCHAR</span></div>
+          <div class="db-col"><span>schedule_label</span><span class="col-type">VARCHAR(160)</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">active / inactive</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">medication_renewal_requests</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>status</span><span class="col-type">submitted→accepted/rejected</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">documents</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>category</span><span class="col-type">ENUM 5 tipos</span></div>
+          <div class="db-col"><span>status</span><span class="col-type">draft→issued→withdrawn</span></div>
+          <div class="db-col"><span>retention_until</span><span class="col-type">TIMESTAMPTZ</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">document_versions</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>version_number</span><span class="col-type">SMALLINT</span></div>
+          <div class="db-col"><span>sha256</span><span class="col-type">CHAR(64)</span></div>
+          <div class="db-col"><span>storage_disk, path</span><span class="col-type">UNIQUE</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">document_publications</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>published_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+          <div class="db-col"><span>withdrawn_at</span><span class="col-type">TIMESTAMPTZ?</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">document_download_grants</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>token_hash</span><span class="col-type">CHAR(64) UNIQUE</span></div>
+          <div class="db-col"><span>expires_at</span><span class="col-type">TIMESTAMPTZ</span></div>
+          <div class="db-col"><span>consumed_at</span><span class="col-type">TIMESTAMPTZ?</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">document_downloads</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>outcome</span><span class="col-type">succeeded / failed</span></div>
+          <div class="db-col"><span>grant_id UNIQUE</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="db-audit" role="tabpanel">
+    <div class="db-grid">
+      <div class="db-table">
+        <div class="db-table-name">audit_chain_heads</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>organization_public_id</span><span class="col-type">UUID PK</span></div>
+          <div class="db-col"><span>last_sequence</span><span class="col-type">BIGINT</span></div>
+          <div class="db-col"><span>last_hash</span><span class="col-type">CHAR(64)</span></div>
+        </div>
+      </div>
+      <div class="db-table">
+        <div class="db-table-name">audit_events</div>
+        <div class="db-table-cols">
+          <div class="db-col pk"><span>public_id</span><span class="col-type">UUID UNIQUE</span></div>
+          <div class="db-col"><span>chain_sequence</span><span class="col-type">BIGINT UNIQUE(org)</span></div>
+          <div class="db-col"><span>previous_hash</span><span class="col-type">CHAR(64)</span></div>
+          <div class="db-col"><span>event_hash</span><span class="col-type">CHAR(64)</span></div>
+          <div class="db-col"><span>occurred_at</span><span class="col-type">CHAR(27) ISO-8601</span></div>
+        </div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--ink-muted);margin-top:10px;">
+      ⛓️ Hash chain: cada evento referencia el hash del anterior. Append-only con cuenta de DB separada.
+      <code style="color:var(--accent-purple);">event_hash = SHA-256(prev_hash || event_data || integrity_key)</code>
+    </p>
+  </div>
+</section>
+
+<!-- ═══════════════ 6. FLOWS ═══════════════ -->
+<section class="section reveal" id="flows">
+  <div class="section-header">
+    <span class="section-number">06</span>
+    <div><h2 class="section-title">Flujos críticos</h2>
+    <p class="section-sub">Recorridos principales a través de las distintas capas del sistema</p></div>
+  </div>
+
+  <div class="grid-2">
+    <!-- Booking flow -->
+    <div class="card" style="background:var(--bg-panel);">
+      <h3 style="font-family:var(--font-display);font-size:15px;margin-bottom:16px;color:var(--accent-amber);">
+        📅 Reserva de cita (paciente)
+      </h3>
+      <div class="flow-container" style="min-width:auto;">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-content"><strong>patient-portal</strong> → GET /api/v1/slots?service=&amp;center=&amp;date=</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-content"><strong>Scheduling</strong> → consulta availability_rules, calcula huecos libres (slot_allocations)</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-content"><strong>patient-portal</strong> → POST /api/v1/appointments {slot_id, idempotency_key}</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-content"><strong>Scheduling</strong> → transacción: INSERT slot_allocation + INSERT appointment + evento AppointmentBooked</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">5</div>
+          <div class="flow-step-content"><strong>Audit</strong> → escucha AppointmentBooked → escribe audit_event con hash chain</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">6</div>
+          <div class="flow-step-content"><strong>Notifications</strong> (futuro) → outbox → email/SMS de confirmación</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document download -->
+    <div class="card" style="background:var(--bg-panel);">
+      <h3 style="font-family:var(--font-display);font-size:15px;margin-bottom:16px;color:var(--accent-orange);">
+        📄 Descarga de documento (paciente)
+      </h3>
+      <div class="flow-container" style="min-width:auto;">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-content"><strong>patient-portal</strong> → GET /api/v1/documents → lista publicaciones activas</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-content"><strong>Documents</strong> → verifica patient_id + publicación activa (withdrawn_at IS NULL)</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-content"><strong>patient-portal</strong> → POST /api/v1/documents/{id}/download-auth</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-content"><strong>Documents</strong> → crea document_download_grant (token_hash, expires_at=5min)</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">5</div>
+          <div class="flow-step-content"><strong>patient-portal</strong> → GET /api/v1/documents/download/{grant_token}</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">6</div>
+          <div class="flow-step-content"><strong>Documents</strong> → consume grant (marca consumed_at) → stream desde Object Storage → audit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auth flow -->
+    <div class="card" style="background:var(--bg-panel);">
+      <h3 style="font-family:var(--font-display);font-size:15px;margin-bottom:16px;color:var(--accent-blue);">
+        🔐 Autenticación BFF (Sanctum cookie)
+      </h3>
+      <div class="flow-container" style="min-width:auto;">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-content"><strong>portal</strong> → GET /api/v1/csrf-cookie → recibe XSRF-TOKEN</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-content"><strong>portal</strong> → POST /api/v1/login {email, password, _csrf}</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-content"><strong>Identity</strong> → verifica credenciales → crea session (Redis) → Set-Cookie HttpOnly</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-content"><strong>Audit</strong> → login event con IP, dispositivo, ubicación</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">5</div>
+          <div class="flow-step-content"><strong>auth lib</strong> → sessionExpiryInterceptor renueva automáticamente antes de expirar</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change flow -->
+    <div class="card" style="background:var(--bg-panel);">
+      <h3 style="font-family:var(--font-display);font-size:15px;margin-bottom:16px;color:var(--accent-purple);">
+        🔄 Cancelación de cita (versionada)
+      </h3>
+      <div class="flow-container" style="min-width:auto;">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-content"><strong>portal</strong> → POST /api/v1/appointments/{id}/cancel {reason_code, idempotency_key}</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-content"><strong>Scheduling</strong> → verifica ChangePolicy (ventana de cancelación, estado)</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-content"><strong>Scheduling</strong> → transacción: version++, status=cancelled, DELETE slot_allocation, INSERT appointment_change</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-content"><strong>Audit</strong> → AppointmentCancelled event → hash chain record</div>
+        </div>
+        <div class="flow-connector"></div>
+        <div class="flow-step">
+          <div class="flow-step-num">5</div>
+          <div class="flow-step-content"><strong>Notifications</strong> (futuro) → slot liberado → oferta a lista de espera</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ 7. CONNECTIONS ═══════════════ -->
+<section class="section reveal" id="connections">
+  <div class="section-header">
+    <span class="section-number">07</span>
+    <div><h2 class="section-title">Matriz de conexiones</h2>
+    <p class="section-sub">Todas las dependencias entre componentes, verificadas contra el código fuente</p></div>
+  </div>
+
+  <div class="card" style="overflow:auto;padding:0;">
+    <table class="conn-table">
+      <thead>
+        <tr><th>Origen</th><th>Destino</th><th>Tipo</th><th>Mecanismo</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>patient-portal</td><td>api-client</td><td><span class="conn-badge conn-http">HTTP</span></td><td>Cliente generado por Orval desde OpenAPI 3.1</td><td>✓ Activo</td></tr>
+        <tr><td>patient-portal</td><td>auth</td><td><span class="conn-badge conn-http">LIB</span></td><td>SessionAuth + sessionExpiryInterceptor</td><td>✓ Activo</td></tr>
+        <tr><td>patient-portal</td><td>design-system</td><td><span class="conn-badge conn-http">LIB</span></td><td>Componentes Material + tokens de diseño</td><td>✓ Activo</td></tr>
+        <tr><td>patient-portal</td><td>motion</td><td><span class="conn-badge conn-http">LIB</span></td><td>ScrollReveal, GSAP</td><td>✓ Activo</td></tr>
+        <tr><td>staff-portal</td><td>api-client</td><td><span class="conn-badge conn-http">HTTP</span></td><td>Cliente generado</td><td>✓ Activo</td></tr>
+        <tr><td>staff-portal</td><td>auth</td><td><span class="conn-badge conn-http">LIB</span></td><td>SessionAuth</td><td>✓ Activo</td></tr>
+        <tr><td>design-lab</td><td>design-system</td><td><span class="conn-badge conn-http">LIB</span></td><td>Componentes para mockups</td><td>✓ Activo</td></tr>
+        <tr><td>design-lab</td><td>motion</td><td><span class="conn-badge conn-http">LIB</span></td><td>Demostraciones de animación</td><td>✓ Activo</td></tr>
+        <tr><td>auth</td><td>api-client</td><td><span class="conn-badge conn-http">HTTP</span></td><td>Interceptor HTTP para sesiones</td><td>✓ Activo</td></tr>
+        <tr style="border-top:2px solid var(--border-subtle);"><td colspan="5" style="padding:6px 12px;font-weight:600;color:var(--accent-teal);">Frontend → Backend (via api-proxy)</td></tr>
+        <tr><td>api-client</td><td>Identity</td><td><span class="conn-badge conn-http">HTTP</span></td><td>/api/v1/login, /logout, /csrf-cookie, /session</td><td>✓ Activo</td></tr>
+        <tr><td>api-client</td><td>Scheduling</td><td><span class="conn-badge conn-http">HTTP</span></td><td>/api/v1/appointments, /slots</td><td>✓ Activo</td></tr>
+        <tr><td>api-client</td><td>Patients</td><td><span class="conn-badge conn-http">HTTP</span></td><td>/api/v1/patients</td><td>✓ Activo</td></tr>
+        <tr><td>api-client</td><td>Medication</td><td><span class="conn-badge conn-http">HTTP</span></td><td>/api/v1/medication</td><td>✓ Activo</td></tr>
+        <tr><td>api-client</td><td>Documents</td><td><span class="conn-badge conn-http">HTTP</span></td><td>/api/v1/documents</td><td>✓ Activo</td></tr>
+        <tr style="border-top:2px solid var(--border-subtle);"><td colspan="5" style="padding:6px 12px;font-weight:600;color:var(--accent-teal);">Acoplamiento entre módulos backend</td></tr>
+        <tr><td>Scheduling</td><td>Audit</td><td><span class="conn-badge conn-event">Evento</span></td><td>AppointmentBooked/Cancelled/Rescheduled → listener</td><td>✓ Activo</td></tr>
+        <tr><td>Medication</td><td>Audit</td><td><span class="conn-badge conn-event">Evento</span></td><td>MedicationDeclared/RenewalRequested → listener</td><td>✓ Activo</td></tr>
+        <tr><td>Documents</td><td>Audit</td><td><span class="conn-badge conn-event">Evento</span></td><td>Publication/Download → listener</td><td>✓ Activo</td></tr>
+        <tr><td>Identity</td><td>Audit</td><td><span class="conn-badge conn-event">Evento</span></td><td>Login/Logout/Session → listener</td><td>✓ Activo</td></tr>
+        <tr><td>TODOS</td><td>Identity</td><td><span class="conn-badge conn-auth">Auth</span></td><td>Middleware Sanctum (cookie HttpOnly)</td><td>✓ Activo</td></tr>
+        <tr><td>TODOS</td><td>Shared</td><td><span class="conn-badge conn-solid">DI</span></td><td>PublicIdGenerator, ClockInterface, Log sanitizer</td><td>✓ Activo</td></tr>
+        <tr style="border-top:2px solid var(--border-subtle);"><td colspan="5" style="padding:6px 12px;font-weight:600;color:var(--accent-amber);">Planificado (stubs futuros)</td></tr>
+        <tr><td>Notifications</td><td>Scheduling</td><td><span class="conn-badge conn-future">Futuro</span></td><td>Recordatorios, confirmaciones, lista de espera</td><td>⏳ Fase 3</td></tr>
+        <tr><td>Notifications</td><td>Medication</td><td><span class="conn-badge conn-future">Futuro</span></td><td>Avisos de renovación</td><td>⏳ Fase 4</td></tr>
+        <tr><td>Notifications</td><td>Documents</td><td><span class="conn-badge conn-future">Futuro</span></td><td>Aviso de nueva publicación</td><td>⏳ Fase 4</td></tr>
+        <tr><td>Privacy</td><td>Identity</td><td><span class="conn-badge conn-future">Futuro</span></td><td>Restricciones, break-glass</td><td>⏳ Fase 5</td></tr>
+        <tr><td>Privacy</td><td>Patients</td><td><span class="conn-badge conn-future">Futuro</span></td><td>Solicitudes ARCO, historial de acceso</td><td>⏳ Fase 5</td></tr>
+        <tr><td>Privacy</td><td>Scheduling</td><td><span class="conn-badge conn-future">Futuro</span></td><td>Restricciones por paciente</td><td>⏳ Fase 5</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer reveal">
+  <div>
+    <strong style="color:var(--accent-teal);">Salud Nexus</strong> —
+    Generado a partir de evidencia en <code>backend/app/Modules/*/</code>,
+    <code>frontend/projects/*/</code>, <code>infrastructure/compose.yaml</code>,
+    <code>database/migrations/*</code> y <code>docs/decisions/*.md</code>.
+  </div>
+  <div>
+    <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> ·
+    <a href="docs/specification.md">Especificación</a> ·
+    <a href="docs/source/plan-maestro.md">Plan maestro</a>
+  </div>
+</footer>
+
+</div><!-- /page -->
+
+<script>
+  // ── Scroll reveal ──
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ── Tab switching ──
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const container = btn.closest('.tabs').parentElement;
+      const tabId = btn.dataset.tab;
+
+      container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      container.querySelectorAll('.tab-btn').forEach(b => {
+        if (b !== btn) b.setAttribute('aria-selected', 'false');
+      });
+
+      container.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      const panel = container.querySelector('#' + tabId);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // ── Nav highlight on scroll ──
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(link => {
+          link.classList.toggle('active', link.getAttribute('href') === '#' + entry.target.id);
+        });
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-60px 0px 0px 0px' });
+
+  sections.forEach(s => navObserver.observe(s));
+
+  // ── Smooth scroll for nav links ──
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+</script>
+</body>
+</html>

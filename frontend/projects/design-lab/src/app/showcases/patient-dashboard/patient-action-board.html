@@ -1,0 +1,71 @@
+<p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+<div class="dashboard-grid">
+  <article class="appointment-card" aria-labelledby="appointment-title">
+    <div class="card-kicker">
+      <mat-icon aria-hidden="true">calendar_today</mat-icon> Próxima cita
+    </div>
+    <div class="appointment-date" aria-hidden="true">
+      <span>JUL</span><strong>23</strong><small>JUE</small>
+    </div>
+    <div class="appointment-copy">
+      <h2 id="appointment-title">Consulta de seguimiento</h2>
+      <p><mat-icon aria-hidden="true">schedule</mat-icon> 10:30–11:00 · Hora peninsular</p>
+      <p><mat-icon aria-hidden="true">location_on</mat-icon> Centro Atlántico · consulta 2.14</p>
+      <div class="appointment-actions">
+        <button matButton="filled" type="button">Ver detalles</button>
+        <button matButton="outlined" type="button">Cambiar cita</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="reminder-card" aria-labelledby="reminder-title">
+    <div class="card-kicker">
+      <mat-icon aria-hidden="true">notifications_active</mat-icon> Recordatorios
+    </div>
+    <h2 id="reminder-title">No tienes que recordarlo todo</h2>
+    <p>Te avisaremos 48 horas antes por el canal que elegiste.</p>
+    <button
+      class="switch-row"
+      type="button"
+      role="switch"
+      [attr.aria-checked]="remindersEnabled()"
+      (click)="toggleReminders()"
+    >
+      <span
+        ><strong>{{ reminderLabel() }}</strong
+        ><small>Correo y notificación segura</small></span
+      >
+      <span class="switch-track" [class.switch-track--active]="remindersEnabled()"
+        ><span></span
+      ></span>
+    </button>
+  </article>
+
+  <article class="action-card" aria-labelledby="documents-title">
+    <div class="action-icon action-icon--document">
+      <mat-icon aria-hidden="true">description</mat-icon>
+    </div>
+    <div>
+      <p class="eyebrow">Documentos</p>
+      <h2 id="documents-title">1 documento nuevo</h2>
+      <p>Disponible desde tu última visita.</p>
+    </div>
+    <button matButton="text" type="button" aria-label="Abrir documentos">
+      Abrir <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+    </button>
+  </article>
+
+  <article class="action-card" aria-labelledby="messages-title">
+    <div class="action-icon action-icon--message">
+      <mat-icon aria-hidden="true">mark_email_unread</mat-icon>
+    </div>
+    <div>
+      <p class="eyebrow">Mensajes</p>
+      <h2 id="messages-title">Todo al día</h2>
+      <p>No hay mensajes pendientes.</p>
+    </div>
+    <button matButton="text" type="button" aria-label="Abrir mensajes">
+      Abrir <mat-icon iconPositionEnd aria-hidden="true">arrow_forward</mat-icon>
+    </button>
+  </article>
+</div>

@@ -1,0 +1,32 @@
+<article class="current-card">
+  <p>Cita actual</p>
+  <div class="date-tile" aria-hidden="true">
+    <span>{{ date().month }}</span
+    ><strong>{{ date().day }}</strong
+    ><small>{{ date().weekday }}</small>
+  </div>
+  <div class="current-copy">
+    <h3>{{ appointment().title }}</h3>
+    <dl>
+      <div>
+        <dt>Hora</dt>
+        <dd>{{ appointment().timeLabel }}</dd>
+      </div>
+      <div>
+        <dt>Centro</dt>
+        <dd>{{ appointment().centre }}</dd>
+      </div>
+      <div>
+        <dt>Ubicación</dt>
+        <dd>{{ appointment().room }}</dd>
+      </div>
+      <div>
+        <dt>Modalidad</dt>
+        <dd>{{ attendanceModeLabel() }}</dd>
+      </div>
+    </dl>
+  </div>
+  <small class="policy-deadline">
+    <sn-icon name="schedule" [size]="17" /> Cambios disponibles hasta el {{ deadlineLabel() }}
+  </small>
+</article>

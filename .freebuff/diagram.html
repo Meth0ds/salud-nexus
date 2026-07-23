@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Salud Nexus — Mapa de módulos</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --panel: #111a36;
+      --line: #1f2a4d;
+      --ink: #e6ecff;
+      --muted: #9fb0d8;
+      --accent: #7cc4ff;
+      --warn: #ffb86b;
+      --good: #7ee787;
+      --pink: #ff79c6;
+    }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; }
+    main { max-width: 1400px; margin: 0 auto; padding: 32px 28px; }
+    h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: .2px; }
+    .sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
+    .legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 18px 0 28px; }
+    .chip { font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); background: var(--panel); }
+    .chip b { color: var(--ink); }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; }
+    .mermaid { background: var(--panel); border-radius: 14px; padding: 18px; overflow: auto; }
+    .footnote { color: var(--muted); font-size: 12px; margin-top: 16px; }
+    code { background: #0a1230; color: #c8d4ff; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Salud Nexus — Mapa de módulos (backend + frontend)</h1>
+    <p class="sub">Modular monolith Laravel 13 + workspace Angular 22. Las flechas representan <i>acoplamiento real</i>: bordes sólidos = dependencias directas (`use App\Modules\…`); bordes discontinuos = puertos (DI), eventos de dominio u orquestación portal. Etiqueta <code>stub</code> significa que el módulo existe pero aún no expone código funcional.</p>
+
+    <div class="legend">
+      <span class="chip"><b>9 módulos backend</b> con ServiceProvider propio en <code>bootstrap/providers.php</code></span>
+      <span class="chip"><b>0</b> dependencias estáticas cruzadas entre módulos (<code>use App\Modules\X\…</code> desde otro módulo)</span>
+      <span class="chip">Acoplamiento real = <b>eventos de dominio</b> + <b>puertos/DI</b> + <b>middleware Sanctum (Identity)</b></span>
+      <span class="chip">El <b>frontend</b> orquesta: <code>api-client</code> generado desde OpenAPI 3.1 llama directamente a cada módulo</span>
+      <span class="chip"><b>Paciente</b>: bordes sólidos / discontinuos según se trate de contrato HTTP, evento, puerto o middleware</span>
+    </div>
+
+    <div class="card">
+      <pre class="mermaid">
+graph LR
+  %% ============================================================
+  %% FRONTEND (Angular workspace) — superpuesto como capa superior
+  %% ============================================================
+  subgraph FE["Frontend · Angular workspace (graph LR)"]
+    direction LR
+    PP["patient-portal<br/>appointments · documents<br/>medication · privacy · auth"]
+    SP["staff-portal<br/>agenda · reception<br/>administration"]
+    DL["design-lab<br/>mockup-canvas · overview<br/>clinician-workspace · security-center"]
+    API["api-client<br/>(generado desde OpenAPI 3.1)"]
+    AUTH["auth<br/>sessionExpiryInterceptor<br/>SessionAuth"]
+    DS["design-system<br/>SnIcon · SnStatusChip · SnMetricCard"]
+    MO["motion<br/>ScrollReveal"]
+    SH["shared<br/>parsePublicId"]
+
+    PP -. uses .-> API
+    PP -. uses .-> AUTH
+    PP -. uses .-> DS
+    PP -. uses .-> MO
+    PP -. uses .-> SH
+    SP -. uses .-> API
+    SP -. uses .-> AUTH
+    DL -. uses .-> DS
+    DL -. uses .-> MO
+    AUTH -. depends on .-> API
+  end
+
+  %% ============================================================
+  %% BACKEND (Laravel 13 modular monolith)
+  %% ============================================================
+  subgraph BE["Backend · Laravel modular monolith"]
+    direction LR
+
+    ID["Identity<br/>Session · Login · Logout<br/>CsrfCookie · CurrentSession"]
+    ORG["Organizations<br/>CenterStatus · OrganizationStatus<br/>(stub operativo)"]
+    PAT["Patients<br/>Portal orchestrator<br/>Dashboard · Profile · Appointments<br/>BookingOptions"]
+    SCH["Scheduling<br/>Book · Reschedule · Cancel<br/>Find · List · ChangePolicy<br/>Domain: AppointmentBooked/Cancelled/Rescheduled"]
+    MED["Medication<br/>Declare · List · Find · Renewal<br/>Domain: MedicationDeclared / RenewalRequested"]
+    DOC["Documents<br/>List · FindPublished · Verify<br/>CreateDownloadAuth · ConsumeDownload"]
+    NOT["Notifications<br/>(stub)"]
+    PRI["Privacy<br/>(stub)"]
+    AUD["Audit<br/>AuditWriter · AuditEventData<br/>AuditChainVerification · Verifier<br/>append-only + hash chain"]
+
+    %% ---- couplings SEMÁNTICAS (no `use` estático cross-module) ----
+    %% Patients NO orquesta: el frontend llama directo a cada módulo vía api-client.
+    %% El único acoplamiento "transversal" real es el middleware de autenticación
+    %% (Sanctum + cookie de sesión, bootstrapped en AppServiceProvider::boot).
+
+    SCH -. auth middleware<br/>Sanctum cookie .-> ID
+    MED -. auth middleware<br/>Sanctum cookie .-> ID
+    DOC -. auth middleware<br/>Sanctum cookie .-> ID
+    PAT -. auth middleware<br/>Sanctum cookie .-> ID
+    AUD -. auth middleware<br/>Sanctum cookie .-> ID
+
+    SCH -. eventos de dominio<br/>AppointmentBooked/Cancelled/Rescheduled .-> AUD
+    MED -. eventos de dominio<br/>MedicationDeclared/RenewalRequested .-> AUD
+    DOC -. eventos de dominio<br/>publication / download .-> AUD
+    ID -. eventos auth<br/>login · logout · session .-> AUD
+    NOT -. port (futuro)<br/>notificaciones .-> SCH
+    NOT -. port (futuro)<br/>notificaciones .-> MED
+    NOT -. port (futuro)<br/>notificaciones .-> DOC
+    NOT -. port (futuro)<br/>notificaciones .-> ID
+    PRI -. policy + accesos<br/>break-glass (futuro) .-> ID
+    PRI -. policy + accesos<br/>solicitudes derechos (futuro) .-> PAT
+    PRI -. policy + accesos<br/>restricciones (futuro) .-> SCH
+  end
+
+  %% ============================================================
+  %% CAPA COMPARTIDA (Shared + Support)
+  %% ============================================================
+  subgraph SHARED["Shared + Support"]
+    direction LR
+    SH_ID["Shared\\Domain\\Identity<br/>PublicIdGenerator"]
+    SH_ID_IMPL["Shared\\Infrastructure\\Identity<br/>RamseyPublicIdGenerator"]
+    CLK["Shared\\Time<br/>ClockInterface (symfony/clock)"]
+    CLK_IMPL["NativeClock (UTC)"]
+    SUP_H["Support\\Health<br/>ReadinessProbe · DatabaseReadinessProbe"]
+    SUP_L["Support\\Logging<br/>sanitizador PHI"]
+    SUP_D["Support\\Database<br/>transacciones · locks"]
+    SUP_HTTP["Support\\Http<br/>middleware · Problem Details"]
+
+    SH_ID --> SH_ID_IMPL
+    CLK --> CLK_IMPL
+    APP["AppServiceProvider"] -. enlaza .-> SH_ID_IMPL
+    APP -. enlaza .-> CLK_IMPL
+    APP -. enlaza .-> SUP_H
+  end
+
+  %% ============================================================
+  %% PUENTES FRONT → BACK (api-client como punto único de contacto)
+  %% ============================================================
+  API == HTTP + Sanctum + CSRF ===> ID
+  API == /api/v1/appointments ===> SCH
+  API == /api/v1/patients ===> PAT
+  API == /api/v1/medication ===> MED
+  API == /api/v1/documents ===> DOC
+  AUTH == sesión Cookie HttpOnly ===> ID
+
+  %% ============================================================
+  %% TODOS LOS MÓDULOS → Shared/Support (transversal, vía contenedor)
+  %% ============================================================
+  ID -. usa .-> SH_ID_IMPL
+  PAT -. usa .-> SH_ID_IMPL
+  SCH -. usa .-> SH_ID_IMPL
+  MED -. usa .-> SH_ID_IMPL
+  DOC -. usa .-> SH_ID_IMPL
+  AUD -. usa .-> SH_ID_IMPL
+  ID -. middleware saneado .-> SUP_HTTP
+  PAT -. middleware saneado .-> SUP_HTTP
+  SCH -. middleware saneado .-> SUP_HTTP
+  MED -. middleware saneado .-> SUP_HTTP
+  DOC -. middleware saneado .-> SUP_HTTP
+  AUD -. middleware saneado .-> SUP_HTTP
+  ID -. logs sanitizados .-> SUP_L
+  PAT -. logs sanitizados .-> SUP_L
+  SCH -. logs sanitizados .-> SUP_L
+  MED -. logs sanitizados .-> SUP_L
+  DOC -. logs sanitizados .-> SUP_L
+  AUD -. logs sanitizados .-> SUP_L
+  PAT -. conexiones DB .-> SUP_D
+  SCH -. conexiones DB .-> SUP_D
+  MED -. conexiones DB .-> SUP_D
+  DOC -. conexiones DB .-> SUP_D
+  AUD -. conexiones DB .-> SUP_D
+
+  %% ============================================================
+  %% ESTILOS
+  %% ============================================================
+  classDef mod fill:#15224a,stroke:#7cc4ff,stroke-width:1px,color:#e6ecff;
+  classDef stub fill:#1a1f3d,stroke:#ff79c6,stroke-dasharray:4 3,color:#ffb1e6;
+  classDef port fill:#0f2a2a,stroke:#7ee787,color:#cfffe5;
+  classDef fe fill:#2a1f33,stroke:#ffb86b,color:#ffe7c2;
+  classDef feLib fill:#241a36,stroke:#c4b5fd,color:#e8defe;
+  classDef shared fill:#102a18,stroke:#7ee787,color:#c8f5d7;
+
+  class ID,PAT,SCH,MED,DOC,AUD mod;
+  class ORG stub;
+  class NOT,PRI stub;
+  class PP,SP,DL fe;
+  class API,AUTH,DS,MO,SH,API feLib;
+  class SH_ID,SH_ID_IMPL,SUP_H,SUP_L,SUP_D,SUP_HTTP shared;
+
+  classDef note fill:#0a1230,stroke:#1f2a4d,color:#9fb0d8;
+  </pre>
+    </div>
+
+    <p class="footnote">
+      Generado a partir de evidencia: <code>app/Modules/*/</code> (subcarpetas reales), <code>bootstrap/providers.php</code> (10 ServiceProviders cargados), <code>AppServiceProvider</code> (enlaces compartidos), <code>app/Http/Controllers/Api/V1/</code> pendiente y <code>grep -RIn "use App\\\\Modules\\\\…"</code> (0 referencias cruzadas entre módulos). Frontend: paquetes <code>peerDependencies</code> de <code>projects/*/package.json</code> + <code>import</code> trazados por <code>grep -RIn</code>.
+    </p>
+  </main>
+
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "dark",
+      themeVariables: {
+        background: "#111a36",
+        primaryColor: "#15224a",
+        primaryTextColor: "#e6ecff",
+        primaryBorderColor: "#7cc4ff",
+        lineColor: "#7cc4ff",
+        fontFamily: "Inter, system-ui, sans-serif",
+      },
+      flowchart: { curve: "basis", htmlLabels: true, padding: 18 },
+    });
+  </script>
+</body>
+</html>

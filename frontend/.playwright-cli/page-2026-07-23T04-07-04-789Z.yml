@@ -1,0 +1,163 @@
+- generic [ref=e2]:
+  - link "Saltar al contenido principal" [ref=e3] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=e4]:
+    - link "Salud Nexus, laboratorio de diseño" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e9]:
+        - strong [ref=e10]: Salud Nexus
+        - generic [ref=e11]: Laboratorio de experiencia sanitaria
+    - generic "Principios del producto" [ref=e12]:
+      - generic [ref=e13]:
+        - generic [ref=e14]: verified_user
+        - text: Privacidad por defecto
+      - generic [ref=e15]:
+        - generic [ref=e16]: accessibility_new
+        - text: WCAG 2.2 AA
+    - navigation "Navegación del laboratorio" [ref=e17]:
+      - link "Catálogo" [ref=e18] [cursor=pointer]:
+        - /url: /catalogo
+      - link "Paciente" [ref=e19] [cursor=pointer]:
+        - /url: /showcase/paciente
+      - link "Clínico" [ref=e20] [cursor=pointer]:
+        - /url: /showcase/clinico
+      - link "Seguridad" [ref=e21] [cursor=pointer]:
+        - /url: /showcase/seguridad
+    - button "Usar tema oscuro" [ref=e22] [cursor=pointer]:
+      - generic [ref=e23]: dark_mode
+  - main [ref=e24]:
+    - generic [ref=e25]:
+      - generic [ref=e26]:
+        - generic [ref=e27]:
+          - link "Volver al catálogo" [ref=e28] [cursor=pointer]:
+            - /url: /catalogo
+            - generic [ref=e29]: arrow_back
+            - text: Volver al catálogo
+          - paragraph [ref=e30]: Acceso y experiencia global · G03
+          - heading "Verificar segundo factor" [level=1] [ref=e31]
+          - generic [ref=e32]: Reto MFA con método alternativo, códigos de recuperación y bloqueo progresivo.
+        - generic "Perfiles de diseño" [ref=e33]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: error
+            - generic [ref=e38]: critica
+          - generic [ref=e39]: ST-D
+          - generic [ref=e40]: RS-A
+          - generic [ref=e41]: M3
+      - region "Mockup interactivo" [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic [ref=e46]: +
+              - generic [ref=e47]:
+                - strong [ref=e48]: Salud Nexus
+                - generic [ref=e49]: Acceso y experiencia global
+            - generic [ref=e50]:
+              - generic [ref=e51]: domain
+              - text: Centro Atlántico · Contexto sintético
+            - button "Abrir notificaciones" [ref=e53]:
+              - generic [ref=e54]: notifications
+            - generic "Cuenta de demostración" [ref=e56]: SN
+          - generic [ref=e57]:
+            - complementary "Navegación de ejemplo" [ref=e58]:
+              - button "Acceso" [ref=e59] [cursor=pointer]:
+                - generic [ref=e60]: login
+              - button "Identidad" [ref=e63] [cursor=pointer]:
+                - generic [ref=e64]: badge
+              - button "Ayuda" [ref=e67] [cursor=pointer]:
+                - generic [ref=e68]: help
+              - button "Ayuda" [ref=e71] [cursor=pointer]:
+                - generic [ref=e72]: help
+            - main [ref=e75]:
+              - navigation "Migas de pan" [ref=e76]:
+                - generic [ref=e77]: Acceso y experiencia global
+                - generic [ref=e78]: chevron_right
+                - strong [ref=e79]: Verificar segundo factor
+              - generic [ref=e80]:
+                - generic [ref=e81]:
+                  - paragraph [ref=e82]: Muestra sintética · G03
+                  - heading "Verificar segundo factor" [level=2] [ref=e83]
+                  - text: Reto MFA con método alternativo, códigos de recuperación y bloqueo progresivo.
+                - button [ref=e84]:
+                  - generic [ref=e85]: health_and_safety
+                  - text: Continuar de forma segura
+              - status [ref=e87]:
+                - img "Control reforzado" [ref=e89]: verified_user
+                - generic [ref=e90]:
+                  - strong [ref=e91]: Control reforzado activo
+                  - text: Esta vista requiere autorización contextual, step-up y auditoría.
+                - button "Ver controles" [ref=e92]
+              - generic [ref=e95]:
+                - list "Progreso del acceso" [ref=e96]:
+                  - listitem [ref=e97]:
+                    - generic [ref=e98]: check
+                    - paragraph [ref=e101]:
+                      - strong [ref=e102]: Contraseña verificada
+                      - generic [ref=e103]: La identidad coincide.
+                  - listitem [ref=e104]:
+                    - generic [ref=e105]: "2"
+                    - paragraph [ref=e106]:
+                      - strong [ref=e107]: Segundo factor
+                      - generic [ref=e108]: Prueba que tienes tu dispositivo.
+                  - listitem [ref=e109]:
+                    - generic [ref=e110]: "3"
+                    - paragraph [ref=e111]:
+                      - strong [ref=e112]: Sesión protegida
+                      - generic [ref=e113]: Se abrirá con nivel AAL2.
+                - article [ref=e114]:
+                  - generic [ref=e115]:
+                    - generic [ref=e116]:
+                      - generic [ref=e117]: verified_user
+                      - text: Paso final
+                    - generic [ref=e119]: El reto caduca en 04:32
+                  - paragraph [ref=e120]: Aplicación de autenticación
+                  - heading "Confirma que eres tú" [level=3] [ref=e121]
+                  - paragraph [ref=e122]: Escribe el código de seis dígitos que ves en tu aplicación. No lo compartas con nadie.
+                  - generic [ref=e123]: Código temporal
+                  - generic [ref=e124]:
+                    - textbox "Código temporal" [ref=e125]:
+                      - /placeholder: 000 000
+                    - generic [ref=e126]: 30 s
+                  - generic [ref=e127]: Puedes pegar los seis dígitos de una vez.
+                  - button [ref=e128] [cursor=pointer]:
+                    - text: Verificar y entrar
+                    - generic [ref=e129]: arrow_forward
+                  - button "No tengo acceso a la aplicación" [ref=e131] [cursor=pointer]
+                - complementary "Controles de seguridad del reto" [ref=e132]:
+                  - generic [ref=e133]: shield_lock
+                  - paragraph [ref=e136]: Protección activa
+                  - heading "Este código no viaja más allá de esta comprobación." [level=4] [ref=e137]
+                  - list [ref=e138]:
+                    - listitem [ref=e139]:
+                      - generic [ref=e140]: check_circle
+                      - text: Un solo uso durante su validez.
+                    - listitem [ref=e142]:
+                      - generic [ref=e143]: check_circle
+                      - text: Máximo de intentos limitado.
+                    - listitem [ref=e145]:
+                      - generic [ref=e146]: check_circle
+                      - text: Sin datos guardados en el navegador.
+                  - paragraph [ref=e148]: El centro nunca te pedirá este código por teléfono, correo o mensajería.
+      - region [ref=e150]:
+        - generic [ref=e151]:
+          - paragraph [ref=e152]: Especificación del mockup
+          - heading "Estados, adaptación y movimiento" [level=2] [ref=e153]
+        - article [ref=e154]:
+          - text: ST-D
+          - heading "Formulario y validación" [level=3] [ref=e155]
+          - list [ref=e156]:
+            - listitem [ref=e157]: inicial
+            - listitem [ref=e158]: error por campo
+            - listitem [ref=e159]: error global
+            - listitem [ref=e160]: guardado
+        - article [ref=e161]:
+          - text: RS-A
+          - heading "Acceso" [level=3] [ref=e162]
+          - paragraph [ref=e163]: Una columna enfocada; panel de ayuda secundario desde 960 px.
+        - article [ref=e164]:
+          - text: M3
+          - heading "Paso guiado" [level=3] [ref=e165]
+          - paragraph [ref=e166]: Transición direccional de 180–220 ms que conserva foco y progreso.
+          - text: "Reducido: Sustitución inmediata y anuncio del paso."
+  - contentinfo [ref=e167]:
+    - generic [ref=e168]: Datos exclusivamente sintéticos
+    - generic [ref=e169]: Angular 22 · Material 3 · CDK · Aria

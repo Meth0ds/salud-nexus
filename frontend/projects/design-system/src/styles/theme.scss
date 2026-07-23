@@ -1,0 +1,14 @@
+@use '@fontsource-variable/manrope';
+@use '@fontsource-variable/source-sans-3';
+@use '@fontsource/material-symbols-rounded';
+@use 'material-theme';
+@use 'tokens';
+
+@include material-theme.material-theme();
+
+:root,
+.sn-theme {
+  @include tokens.product-tokens();
+}
+
+@include tokens.foundation();

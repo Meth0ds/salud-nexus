@@ -1,0 +1,70 @@
+:host {
+  display: block;
+}
+
+.sn-empty-state {
+  display: grid;
+  justify-items: center;
+  padding: clamp(2rem, 7vw, 4.5rem) var(--sn-space-5, 1.25rem);
+  border: 1px dashed var(--sn-color-border, #a9c1c5);
+  border-radius: var(--sn-radius-xl, 1.5rem);
+  background: var(--sn-color-surface-subtle, #edf6f6);
+  color: var(--sn-color-text, #0a3039);
+  text-align: center;
+}
+
+.sn-empty-state__icon {
+  display: inline-flex;
+  inline-size: 3.5rem;
+  block-size: 3.5rem;
+  align-items: center;
+  justify-content: center;
+  margin-block-end: var(--sn-space-4, 1rem);
+  border: 1px solid var(--sn-color-border-subtle, #c9dadd);
+  border-radius: var(--sn-radius-pill, 999px);
+  background: var(--sn-color-surface, #fff);
+  color: var(--sn-color-primary, #00616c);
+}
+
+h2,
+p {
+  max-inline-size: 36rem;
+  margin: 0;
+}
+
+h2 {
+  font-family: var(--sn-font-display, 'Manrope', sans-serif);
+  font-size: var(--sn-type-heading-md, clamp(1.25rem, 1.1rem + 0.5vw, 1.5rem));
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+p {
+  margin-block-start: var(--sn-space-2, 0.5rem);
+  color: var(--sn-color-text-muted, #3b5961);
+  font-family: var(--sn-font-body, 'Source Sans 3', sans-serif);
+  font-size: var(--sn-type-body, 1rem);
+  line-height: 1.55;
+}
+
+.sn-empty-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sn-space-2, 0.5rem);
+  margin-block-start: var(--sn-space-5, 1.25rem);
+}
+
+.sn-empty-state__actions:empty {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .sn-empty-state,
+  .sn-empty-state__icon {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}

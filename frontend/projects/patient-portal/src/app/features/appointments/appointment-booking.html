@@ -1,0 +1,200 @@
+<div class="sn-patient-page booking-page">
+  <a class="back-link" routerLink="/citas">
+    <sn-icon name="arrow_back" [size]="18" /> Volver a mis citas
+  </a>
+
+  <header class="sn-page-header">
+    <div>
+      <p class="sn-eyebrow">Reserva guiada</p>
+      <h1>Pedir una cita</h1>
+      <p>
+        Tres pasos breves en tu centro.
+        {{
+          isDemo
+            ? 'La disponibilidad y confirmación son sintéticas en esta demo.'
+            : 'La disponibilidad se comprueba en tiempo real antes de confirmar.'
+        }}
+      </p>
+    </div>
+  </header>
+
+  <p class="sn-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+  @if (reservation(); as appointment) {
+    <section class="confirmation sn-reveal" role="status" aria-live="polite">
+      <span class="confirmation-icon" aria-hidden="true">
+        <sn-icon name="event_available" [size]="36" />
+      </span>
+      <p class="sn-eyebrow">{{ isDemo ? 'Reserva sintética completada' : 'Reserva completada' }}</p>
+      <h2>{{ isDemo ? 'Cita confirmada en la demo' : 'Cita confirmada' }}</h2>
+      <p>
+        {{ appointment.dateLabel }} · {{ appointment.timeLabel }}<br />
+        {{ appointment.professional }} · {{ appointment.centre }}
+      </p>
+      @if (isDemo) {
+        <div class="confirmation-note">
+          <sn-icon name="info" [size]="20" />
+          No se ha contactado con ningún centro ni se ha creado una cita real.
+        </div>
+      } @else {
+        <div class="confirmation-note">
+          <sn-icon name="verified" [size]="20" />
+          La cita ha quedado registrada. Puedes revisar el detalle desde tu agenda.
+        </div>
+      }
+      <a matButton="filled" routerLink="/citas">Volver a mis citas</a>
+    </section>
+  } @else {
+    <div class="booking-layout sn-reveal">
+      <nav class="step-navigation" aria-label="Pasos para pedir una cita">
+        <ol>
+          @for (step of steps; track step; let index = $index) {
+            <li
+              [class.step--active]="currentStep() === index"
+              [class.step--complete]="currentStep() > index"
+              [attr.aria-current]="currentStep() === index ? 'step' : null"
+            >
+              <span aria-hidden="true">
+                @if (currentStep() > index) {
+                  <sn-icon name="check" [size]="17" />
+                } @else {
+                  {{ index + 1 }}
+                }
+              </span>
+              <div>
+                <strong>{{ step }}</strong
+                ><small>Paso {{ index + 1 }} de 3</small>
+              </div>
+            </li>
+          }
+        </ol>
+      </nav>
+
+      <form novalidate (submit)="confirmBooking(); $event.preventDefault()">
+        <aside class="fixed-center" aria-label="Centro de la reserva">
+          <sn-icon name="location_on" [size]="21" />
+          <span
+            ><small>Centro configurado</small><strong>{{ selectedCentreLabel() }}</strong></span
+          >
+          <span class="fixed-center-badge">Centro único</span>
+        </aside>
+
+        @switch (currentStep()) {
+          @case (0) {
+            <fieldset>
+              <legend>¿Qué servicio necesitas?</legend>
+              <p>Mostramos únicamente servicios con disponibilidad en este centro.</p>
+              <mat-form-field appearance="outline">
+                <mat-label>Servicio</mat-label>
+                <select
+                  matNativeControl
+                  id="booking-service"
+                  [formField]="bookingForm.appointmentTypeId"
+                >
+                  <option value="">Selecciona un servicio</option>
+                  @for (type of availableAppointmentTypes(); track type.id) {
+                    <option [value]="type.id">
+                      {{ type.name }} · {{ type.durationMinutes }} min
+                    </option>
+                  }
+                </select>
+              </mat-form-field>
+            </fieldset>
+          }
+          @case (1) {
+            <fieldset>
+              <legend>Selecciona fecha y modalidad</legend>
+              <p>
+                {{
+                  isDemo
+                    ? 'Las franjas son ejemplos y no bloquean una agenda externa.'
+                    : 'La franja se bloqueará de forma atómica al confirmar.'
+                }}
+              </p>
+              <mat-form-field appearance="outline">
+                <mat-label>Fecha y hora</mat-label>
+                <select matNativeControl id="booking-slot" [formField]="bookingForm.slotId">
+                  <option value="">Selecciona una franja</option>
+                  @for (slot of availableSlots(); track slot.id) {
+                    <option [value]="slot.id">{{ slot.dateLabel }} · {{ slot.timeLabel }}</option>
+                  }
+                </select>
+              </mat-form-field>
+
+              <aside class="demo-warning">
+                <sn-icon name="info" [size]="21" />
+                Modalidad: <strong>{{ attendanceModeLabel() }}</strong>
+              </aside>
+            </fieldset>
+          }
+          @case (2) {
+            <fieldset>
+              <legend>Revisa antes de confirmar</legend>
+              <p>
+                {{
+                  isDemo
+                    ? 'Confirma solo si la información sintética coincide con tu elección.'
+                    : 'Comprueba el servicio, la fecha y la modalidad antes de reservar.'
+                }}
+              </p>
+              <dl class="booking-summary">
+                <div>
+                  <dt>Centro</dt>
+                  <dd>{{ selectedCentreLabel() }}</dd>
+                </div>
+                <div>
+                  <dt>Servicio</dt>
+                  <dd>{{ selectedAppointmentType()?.name ?? 'Sin seleccionar' }}</dd>
+                </div>
+                <div>
+                  <dt>Fecha</dt>
+                  <dd>{{ selectedSlotLabel() }}</dd>
+                </div>
+                <div>
+                  <dt>Modalidad</dt>
+                  <dd>
+                    {{ attendanceModeLabel() }}
+                  </dd>
+                </div>
+              </dl>
+              @if (isDemo) {
+                <aside class="demo-warning">
+                  <sn-icon name="science" [size]="21" />
+                  Confirmar solo cambia el repositorio en memoria de esta pestaña.
+                </aside>
+              }
+            </fieldset>
+          }
+        }
+
+        @if (optionsError()) {
+          <div class="booking-error" role="alert">{{ optionsError() }}</div>
+        }
+        @if (bookingError()) {
+          <div class="booking-error" role="alert">{{ bookingError() }}</div>
+        }
+
+        <div class="form-actions">
+          @if (currentStep() > 0) {
+            <button matButton="outlined" type="button" (click)="previousStep()">Atrás</button>
+          }
+          @if (currentStep() < 2) {
+            <button
+              matButton="filled"
+              type="button"
+              [disabled]="!canContinue()"
+              (click)="nextStep()"
+            >
+              {{ currentStep() === 1 ? 'Revisar cita' : 'Continuar' }}
+              <sn-icon name="arrow_forward" [size]="19" />
+            </button>
+          } @else {
+            <button matButton="filled" type="submit" [disabled]="submitting() || !canContinue()">
+              {{ submitting() ? 'Confirmando…' : 'Confirmar cita' }}
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  }
+</div>

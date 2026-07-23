@@ -1,0 +1,331 @@
+<div class="sn-patient-page change-page">
+  <a class="back-link" routerLink="/citas/detalle">
+    <sn-icon name="arrow_back" [size]="18" /> Volver al detalle
+  </a>
+
+  <header class="sn-page-header change-header">
+    <div>
+      <p class="sn-eyebrow">Gestión segura</p>
+      <h1>Gestionar cita</h1>
+      <p>
+        Cambia la fecha o cancela desde este centro. Confirmaremos el resultado antes de liberar tu
+        reserva actual.
+      </p>
+    </div>
+    <span class="center-context"><sn-icon name="location_on" [size]="19" /> Centro único</span>
+  </header>
+
+  <p class="sn-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+  @if (viewState(); as state) {
+    @switch (state.kind) {
+      @case ('loading') {
+        <sn-patient-demo-state-panel
+          kind="loading"
+          heading="Comprobando la cita"
+          description="Consultamos su versión y las condiciones de cambio confirmadas por el centro."
+        />
+      }
+      @case ('empty') {
+        <sn-patient-demo-state-panel
+          kind="empty"
+          heading="No hay una cita seleccionada"
+          description="Vuelve a tu agenda, abre una cita y elige Gestionar cita."
+          (action)="retry()"
+        />
+      }
+      @case ('error') {
+        <sn-patient-demo-state-panel
+          kind="error"
+          heading="No se pudo comprobar la cita"
+          description="No hagas cambios con información incompleta. Vuelve a intentarlo."
+          [correlationId]="state.correlationId"
+          (action)="retry()"
+        />
+      }
+      @case ('restricted') {
+        <sn-patient-demo-state-panel
+          kind="restricted"
+          heading="Gestión restringida"
+          description="El centro debe volver a autorizar el acceso a esta cita."
+          (action)="retry()"
+        />
+      }
+      @case ('ready') {
+        @if (state.data.appointment; as appointment) {
+          @if (completedChange(); as result) {
+            <sn-patient-appointment-change-result
+              class="sn-reveal"
+              [after]="result.after"
+              [before]="result.before"
+              [isDemo]="isDemo"
+              [mode]="result.mode"
+            />
+          } @else if (!isEligible()) {
+            <sn-patient-appointment-change-eligibility
+              class="sn-reveal"
+              [appointment]="appointment"
+              [deadlineLabel]="changeDeadlineLabel()"
+            />
+          } @else {
+            <section class="change-workspace sn-reveal" aria-labelledby="change-mode-title">
+              <div class="workspace-heading">
+                <div>
+                  <p class="sn-eyebrow">Elige una operación</p>
+                  <h2 id="change-mode-title">¿Qué necesitas hacer?</h2>
+                </div>
+                <div class="mode-switch" aria-label="Operación sobre la cita">
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    data-mode="reschedule"
+                    [class.mode-button--active]="mode() === 'reschedule'"
+                    [attr.aria-pressed]="mode() === 'reschedule'"
+                    (click)="selectMode('reschedule')"
+                  >
+                    <sn-icon name="event_repeat" [size]="19" /> Cambiar fecha y hora
+                  </button>
+                  <button
+                    matButton="outlined"
+                    type="button"
+                    data-mode="cancel"
+                    [class.mode-button--active]="mode() === 'cancel'"
+                    [attr.aria-pressed]="mode() === 'cancel'"
+                    (click)="selectMode('cancel')"
+                  >
+                    <sn-icon name="event_busy" [size]="19" /> Cancelar cita
+                  </button>
+                </div>
+              </div>
+
+              <aside class="change-assurance">
+                <span aria-hidden="true"><sn-icon name="shield_lock" [size]="22" /></span>
+                <div>
+                  <strong>Tu cita sigue reservada</strong>
+                  <small>
+                    No liberaremos el hueco actual hasta que el centro confirme la operación.
+                  </small>
+                </div>
+                <sn-status-chip label="Protegida" tone="success" />
+              </aside>
+
+              <div class="continuity-grid" [class.continuity-grid--danger]="mode() === 'cancel'">
+                <sn-patient-appointment-current-card
+                  [appointment]="appointment"
+                  [deadlineLabel]="changeDeadlineLabel()"
+                />
+
+                <div class="continuity-link" aria-hidden="true">
+                  <span></span>
+                  <sn-icon [name]="mode() === 'reschedule' ? 'arrow_forward' : 'close'" />
+                </div>
+
+                @if (mode() === 'reschedule') {
+                  <form
+                    class="continuity-card continuity-card--proposal"
+                    novalidate
+                    (submit)="confirmReschedule(); $event.preventDefault()"
+                  >
+                    <p>Nueva propuesta</p>
+                    <h3>Elige otro hueco del mismo servicio</h3>
+
+                    @if (availabilityLoading()) {
+                      <div class="inline-state" role="status" aria-live="polite">
+                        <sn-icon name="progress_activity" [size]="21" /> Consultando disponibilidad…
+                      </div>
+                    } @else if (availabilityError()) {
+                      <div class="inline-state inline-state--error" role="alert">
+                        <sn-icon name="cloud_off" [size]="21" />
+                        <span>{{ availabilityError() }}</span>
+                        <button matButton="outlined" type="button" (click)="retryAvailability()">
+                          Reintentar
+                        </button>
+                      </div>
+                    } @else if (availableSlots().length === 0) {
+                      <div class="inline-state" role="status">
+                        <sn-icon name="event_busy" [size]="21" />
+                        <span>No hay otros huecos disponibles para este servicio.</span>
+                        <button matButton="outlined" type="button" (click)="retryAvailability()">
+                          Actualizar
+                        </button>
+                      </div>
+                    } @else {
+                      <mat-form-field appearance="outline">
+                        <mat-label>Nueva fecha y hora</mat-label>
+                        <mat-select id="new-slot" [formField]="rescheduleForm.slotId">
+                          @for (slot of availableSlots(); track slot.id) {
+                            <mat-option [value]="slot.id">
+                              {{ slot.dateLabel }} · {{ slot.timeLabel }}
+                            </mat-option>
+                          }
+                        </mat-select>
+                        <mat-hint>Disponibilidad actualizada por el centro</mat-hint>
+                        @if (
+                          rescheduleForm.slotId().touched() && rescheduleForm.slotId().errors()[0];
+                          as error
+                        ) {
+                          <mat-error>{{ error.message }}</mat-error>
+                        }
+                      </mat-form-field>
+
+                      @if (selectedSlot(); as slot) {
+                        <article class="slot-preview" aria-label="Nuevo hueco seleccionado">
+                          @if (selectedDate(); as date) {
+                            <div class="slot-date" aria-hidden="true">
+                              <span>{{ date.weekday }}</span
+                              ><strong>{{ date.day }}</strong
+                              ><small>{{ date.month }}</small>
+                            </div>
+                          }
+                          <div>
+                            <small>Nuevo horario</small>
+                            <strong>{{ slot.timeLabel }}</strong>
+                            <span>{{ slot.locationLabel }} · {{ slot.centre.name }}</span>
+                          </div>
+                          <sn-icon name="check_circle" [size]="22" aria-hidden="true" />
+                        </article>
+                      }
+                    }
+
+                    <p class="continuity-rule">
+                      <sn-icon name="verified" [size]="19" /> Se mantienen centro, servicio y
+                      modalidad.
+                    </p>
+
+                    <footer class="change-confirmation">
+                      <p>
+                        <strong>Revisa antes de confirmar</strong>
+                        <span
+                          >La cita actual se conserva si el nuevo hueco deja de estar libre.</span
+                        >
+                      </p>
+                      <button
+                        matButton="filled"
+                        type="submit"
+                        data-action="confirm-reschedule"
+                        [disabled]="!canReschedule()"
+                      >
+                        <sn-icon
+                          [name]="submitting() ? 'progress_activity' : 'event_available'"
+                          [size]="19"
+                        />
+                        {{ submitting() ? 'Confirmando…' : 'Confirmar cambio' }}
+                      </button>
+                    </footer>
+                  </form>
+                } @else {
+                  <form
+                    class="continuity-card continuity-card--consequence"
+                    novalidate
+                    (submit)="confirmCancellation(); $event.preventDefault()"
+                  >
+                    <p>Consecuencias</p>
+                    <h3>Cancelar libera este hueco</h3>
+                    <span class="consequence-copy">
+                      La cita pasará al historial y no podrás recuperarla desde el portal.
+                    </span>
+
+                    <fieldset class="reason-options">
+                      <legend>Motivo administrativo</legend>
+                      <label>
+                        <input
+                          type="radio"
+                          value="plans-changed"
+                          [formField]="cancellationForm.reason"
+                        />
+                        <span><strong>Cambio de planes</strong><small>No podré acudir</small></span>
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="transport-issue"
+                          [formField]="cancellationForm.reason"
+                        />
+                        <span
+                          ><strong>Problema de desplazamiento</strong
+                          ><small>No puedo llegar al centro</small></span
+                        >
+                      </label>
+                      <label>
+                        <input
+                          type="radio"
+                          value="feeling-better"
+                          [formField]="cancellationForm.reason"
+                        />
+                        <span
+                          ><strong>Ya no necesito la cita</strong
+                          ><small>Sin aportar información clínica adicional</small></span
+                        >
+                      </label>
+                      <label>
+                        <input type="radio" value="other" [formField]="cancellationForm.reason" />
+                        <span
+                          ><strong>Otro motivo</strong><small>No pediremos texto libre</small></span
+                        >
+                      </label>
+                    </fieldset>
+                    @if (
+                      cancellationForm.reason().touched() && cancellationForm.reason().errors()[0];
+                      as error
+                    ) {
+                      <p class="field-error" role="alert">{{ error.message }}</p>
+                    }
+
+                    <button
+                      class="change-alternative"
+                      type="button"
+                      (click)="selectMode('reschedule')"
+                    >
+                      Prefiero cambiar la fecha y hora
+                    </button>
+
+                    <footer class="change-confirmation change-confirmation--danger">
+                      <p>
+                        <strong>Acción irreversible</strong>
+                        <span>El centro registrará la cancelación y el motivo elegido.</span>
+                      </p>
+                      <button
+                        matButton="filled"
+                        class="danger-action"
+                        type="submit"
+                        data-action="confirm-cancellation"
+                        [disabled]="!canCancel()"
+                      >
+                        <sn-icon
+                          [name]="submitting() ? 'progress_activity' : 'event_busy'"
+                          [size]="19"
+                        />
+                        {{ submitting() ? 'Cancelando…' : 'Confirmar cancelación' }}
+                      </button>
+                    </footer>
+                  </form>
+                }
+              </div>
+
+              @if (mutationFeedback(); as feedback) {
+                <sn-patient-appointment-change-feedback
+                  [kind]="feedback.kind"
+                  [message]="feedback.message"
+                  [requestId]="feedback.requestId"
+                  [title]="feedback.title"
+                  (recover)="recoverFromMutation()"
+                />
+              }
+            </section>
+
+            <aside class="privacy-note" snScrollReveal [snScrollRevealDelay]="0.08">
+              <sn-icon name="privacy_tip" [size]="22" />
+              <div>
+                <strong>Privacidad por diseño</strong>
+                <span>
+                  Solo enviamos el nuevo hueco o un motivo cerrado. No almacenamos notas clínicas ni
+                  estos formularios en el navegador.
+                </span>
+              </div>
+            </aside>
+          }
+        }
+      }
+    }
+  }
+</div>

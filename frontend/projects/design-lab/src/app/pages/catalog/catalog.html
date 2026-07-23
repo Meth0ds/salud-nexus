@@ -1,0 +1,144 @@
+<header class="catalog-hero">
+  <div>
+    <p class="eyebrow">Inventario canónico · mockups ejecutables</p>
+    <h1>{{ total }} pantallas. Ningún estado invisible.</h1>
+    <p>
+      Cada ruta tiene audiencia, prioridad, estados, responsive y política de movimiento. Los
+      enlaces abren un lienzo de diseño generado desde esta única fuente de verdad.
+    </p>
+  </div>
+  <dl aria-label="Cobertura del catálogo">
+    <div>
+      <dt>7</dt>
+      <dd>familias</dd>
+    </div>
+    <div>
+      <dt>11</dt>
+      <dd>perfiles de estado</dd>
+    </div>
+    <div>
+      <dt>10</dt>
+      <dd>perfiles responsive</dd>
+    </div>
+    <div>
+      <dt>9</dt>
+      <dd>perfiles de movimiento</dd>
+    </div>
+  </dl>
+</header>
+
+<section class="catalog-shell" aria-labelledby="filters-title">
+  <aside class="family-rail">
+    <h2 id="filters-title">Mapa de cobertura</h2>
+    <ol>
+      @for (option of familyOptions.slice(1); track option.value) {
+        <li>
+          <span class="family-mark" [attr.data-family]="option.value">{{ option.value }}</span>
+          <span>{{ option.label }}</span>
+          <strong>{{ familyCount(option.value) }}</strong>
+        </li>
+      }
+    </ol>
+    <p>Los overlays se prueban además dentro de cada recorrido crítico.</p>
+  </aside>
+
+  <div class="catalog-content">
+    <form class="filters" aria-label="Filtrar catálogo" (submit)="$event.preventDefault()">
+      <label class="search-field" for="catalog-query">
+        <span>Buscar pantalla, ruta o capacidad</span>
+        <span class="field-control">
+          <i aria-hidden="true">search</i>
+          <input
+            id="catalog-query"
+            type="search"
+            autocomplete="off"
+            placeholder="Ej. break-glass, cita, auditoría…"
+            [formField]="filters.query"
+          />
+        </span>
+      </label>
+
+      <label>
+        <span>Familia</span>
+        <select [formField]="filters.family">
+          @for (option of familyOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Audiencia</span>
+        <select [formField]="filters.audience">
+          @for (option of audienceOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        <span>Prioridad</span>
+        <select [formField]="filters.priority">
+          @for (option of priorityOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    </form>
+
+    <div class="result-bar" aria-live="polite">
+      <strong data-testid="results-count"
+        >{{ filteredScreens().length }} de {{ total }} pantallas</strong
+      >
+      <span>Datos sintéticos · Sin identificadores sensibles en URL</span>
+    </div>
+
+    @if (filteredScreens().length) {
+      <div class="screen-grid">
+        @for (screen of filteredScreens(); track screen.id) {
+          <article class="screen-card" data-testid="screen-card" [attr.data-family]="screen.id[0]">
+            <div class="screen-card__topline">
+              <span class="screen-id">{{ screen.id }}</span>
+              <span class="priority" [attr.data-priority]="screen.prioridad">{{
+                screen.prioridad
+              }}</span>
+            </div>
+            <div>
+              <p>{{ screen.audiencia.join(' · ') }}</p>
+              <h2>{{ screen.titulo }}</h2>
+              <span>{{ screen.descripcion }}</span>
+            </div>
+            <dl>
+              <div>
+                <dt>Estado</dt>
+                <dd>{{ screen.estadoVisual }}</dd>
+              </div>
+              <div>
+                <dt>Responsive</dt>
+                <dd>{{ screen.responsive }}</dd>
+              </div>
+              <div>
+                <dt>Motion</dt>
+                <dd>{{ screen.motion }}</dd>
+              </div>
+            </dl>
+            <code>{{ screen.ruta }}</code>
+            <a
+              [routerLink]="mockupRouteFor(screen)"
+              [attr.aria-label]="'Abrir mockup ' + screen.id + ': ' + screen.titulo"
+            >
+              Abrir mockup <i aria-hidden="true">arrow_forward</i>
+            </a>
+          </article>
+        }
+      </div>
+    } @else {
+      <div class="empty-results" role="status">
+        <i aria-hidden="true">search_off</i>
+        <h2>No hay pantallas con esos filtros</h2>
+        <p>Prueba una búsqueda más amplia o restablece el catálogo.</p>
+        <button type="button" (click)="clearFilters()">Restablecer filtros</button>
+      </div>
+    }
+  </div>
+</section>

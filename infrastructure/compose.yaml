@@ -1,0 +1,339 @@
+name: ${COMPOSE_PROJECT_NAME:-salud-nexus}
+
+x-runtime-hardening: &runtime-hardening
+  init: true
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+x-php-environment: &php-environment
+  APP_NAME: Salud Nexus API
+  APP_ENV: ${APP_ENV:-local}
+  APP_DEBUG: "false"
+  APP_URL: ${APP_URL:-http://localhost:8080}
+  APP_KEY_FILE: /run/secrets/app_key
+  AUDIT_INTEGRITY_KEY_FILE: /run/secrets/audit_integrity_key
+  APP_LOCALE: es
+  APP_FALLBACK_LOCALE: en
+  API_MAX_BODY_BYTES: "1048576"
+  API_RATE_LIMIT_PER_MINUTE: "120"
+  HEALTH_RATE_LIMIT_PER_MINUTE: "60"
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:4201,http://localhost:4300}
+  CORS_MAX_AGE: "600"
+  TRUSTED_HOSTS: ${TRUSTED_HOSTS:-localhost,127.0.0.1,patient-web,staff-web,design-lab,api-proxy}
+  TRUSTED_PROXIES: ""
+  HSTS_ENABLED: "false"
+  HASH_DRIVER: argon2id
+  ARGON_MEMORY: "65536"
+  ARGON_THREADS: "1"
+  ARGON_TIME: "4"
+  LOG_CHANNEL: stderr
+  LOG_LEVEL: warning
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: "5432"
+  DB_DATABASE: ${POSTGRES_DB:-salud_nexus}
+  DB_USERNAME: ${POSTGRES_USER:-salud_nexus_app}
+  DB_PASSWORD_FILE: /run/secrets/postgres_password
+  DB_SSLMODE: prefer
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PORT: "6379"
+  REDIS_PASSWORD_FILE: /run/secrets/redis_password
+  REDIS_DB: "0"
+  REDIS_CACHE_DB: "1"
+  CACHE_STORE: redis
+  SESSION_DRIVER: redis
+  SESSION_CONNECTION: default
+  SESSION_LIFETIME: "120"
+  SESSION_ENCRYPT: "true"
+  SESSION_HTTP_ONLY: "true"
+  SESSION_SECURE_COOKIE: "false"
+  SESSION_SAME_SITE: lax
+  QUEUE_CONNECTION: redis
+  MAIL_MAILER: array
+  FILESYSTEM_DISK: local
+
+services:
+  postgres:
+    <<: *runtime-hardening
+    image: postgres:18.4-alpine3.24@sha256:9a8afca54e7861fd90fab5fdf4c42477a6b1cb7d293595148e674e0a3181de15
+    user: postgres
+    read_only: true
+    shm_size: 256m
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-salud_nexus}
+      POSTGRES_USER: ${POSTGRES_USER:-salud_nexus_app}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256 --auth-local=scram-sha-256 --data-checksums
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    tmpfs:
+      - /tmp:uid=70,gid=70,mode=1770
+      - /run/postgresql:uid=70,gid=70,mode=3770
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --host=127.0.0.1 --username=$${POSTGRES_USER} --dbname=$${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+    cpus: 1.5
+    mem_limit: 1g
+    pids_limit: 256
+    stop_grace_period: 30s
+
+  redis:
+    <<: *runtime-hardening
+    image: redis:8.8.0-alpine3.23@sha256:9d317178eceac8454a2284a9e6df2466b93c745529947f0cd42a0fa9609d7005
+    user: redis
+    read_only: true
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        umask 077
+        printf 'bind 0.0.0.0\nprotected-mode yes\nappendonly yes\nappendfsync everysec\nsave 60 1000\nmaxmemory-policy noeviction\nrequirepass %s\n' "$$(cat /run/secrets/redis_password)" > /tmp/redis.conf
+        exec redis-server /tmp/redis.conf
+    secrets:
+      - redis_password
+    volumes:
+      - redis-data:/data
+    tmpfs:
+      - /tmp:uid=999,gid=1000,mode=1770
+    networks:
+      - data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$(cat /run/secrets/redis_password)\" ping | grep -qx PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+    cpus: 0.5
+    mem_limit: 256m
+    pids_limit: 128
+    stop_grace_period: 20s
+
+  api:
+    <<: *runtime-hardening
+    image: salud-nexus-api:local
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/backend/Dockerfile
+      target: runtime
+    read_only: true
+    environment: *php-environment
+    secrets:
+      - app_key
+      - audit_integrity_key
+      - postgres_password
+      - redis_password
+    tmpfs:
+      - /tmp:uid=10001,gid=10001,mode=1770
+      - /srv/app/bootstrap/cache:uid=10001,gid=10001,mode=0770
+      - /srv/app/storage:uid=10001,gid=10001,mode=0770
+    networks:
+      - application
+      - data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    cpus: 1.0
+    mem_limit: 512m
+    pids_limit: 192
+    stop_grace_period: 30s
+
+  api-proxy:
+    <<: *runtime-hardening
+    image: salud-nexus-api-proxy:local
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/api-proxy/Dockerfile
+    read_only: true
+    environment:
+      FORWARDED_PROTO: http
+      NGINX_ENVSUBST_FILTER: ^FORWARDED_PROTO$
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=1770
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0750
+    networks:
+      - edge
+      - application
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:${API_HOST_PORT:-8080}:8080
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 96
+    stop_grace_period: 15s
+
+  patient-web:
+    <<: *runtime-hardening
+    image: salud-nexus-patient-web:local
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/frontend/Dockerfile
+      args:
+        APP_NAME: patient-portal
+    read_only: true
+    environment:
+      API_UPSTREAM: http://api-proxy:8080
+      NGINX_ENVSUBST_FILTER: ^API_UPSTREAM$
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=1770
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0750
+    networks:
+      - edge
+    depends_on:
+      api-proxy:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:${PATIENT_HOST_PORT:-4200}:8080
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 96
+    stop_grace_period: 15s
+
+  staff-web:
+    <<: *runtime-hardening
+    image: salud-nexus-staff-web:local
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/frontend/Dockerfile
+      args:
+        APP_NAME: staff-portal
+    read_only: true
+    environment:
+      API_UPSTREAM: http://api-proxy:8080
+      NGINX_ENVSUBST_FILTER: ^API_UPSTREAM$
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=1770
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0750
+    networks:
+      - edge
+    depends_on:
+      api-proxy:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:${STAFF_HOST_PORT:-4201}:8080
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 96
+    stop_grace_period: 15s
+
+  design-lab:
+    <<: *runtime-hardening
+    profiles: [design]
+    image: salud-nexus-design-lab:local
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/frontend/Dockerfile
+      args:
+        APP_NAME: design-lab
+    read_only: true
+    environment:
+      API_UPSTREAM: http://api-proxy:8080
+      NGINX_ENVSUBST_FILTER: ^API_UPSTREAM$
+    tmpfs:
+      - /tmp:uid=101,gid=101,mode=1770
+      - /etc/nginx/conf.d:uid=101,gid=101,mode=0750
+    networks:
+      - edge
+    depends_on:
+      api-proxy:
+        condition: service_healthy
+    ports:
+      - 127.0.0.1:${DESIGN_HOST_PORT:-4300}:8080
+    cpus: 0.5
+    mem_limit: 128m
+    pids_limit: 96
+    stop_grace_period: 15s
+
+  queue-worker:
+    <<: *runtime-hardening
+    profiles: [workers]
+    image: salud-nexus-api:local
+    read_only: true
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90", "--max-time=3600"]
+    environment: *php-environment
+    secrets:
+      - app_key
+      - audit_integrity_key
+      - postgres_password
+      - redis_password
+    tmpfs:
+      - /tmp:uid=10001,gid=10001,mode=1770
+      - /srv/app/bootstrap/cache:uid=10001,gid=10001,mode=0770
+      - /srv/app/storage:uid=10001,gid=10001,mode=0770
+    networks:
+      - data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    cpus: 0.75
+    mem_limit: 384m
+    pids_limit: 128
+    stop_grace_period: 90s
+
+  scheduler:
+    <<: *runtime-hardening
+    profiles: [workers]
+    image: salud-nexus-api:local
+    read_only: true
+    command: ["php", "artisan", "schedule:work"]
+    environment: *php-environment
+    secrets:
+      - app_key
+      - audit_integrity_key
+      - postgres_password
+      - redis_password
+    tmpfs:
+      - /tmp:uid=10001,gid=10001,mode=1770
+      - /srv/app/bootstrap/cache:uid=10001,gid=10001,mode=0770
+      - /srv/app/storage:uid=10001,gid=10001,mode=0770
+    networks:
+      - data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    cpus: 0.5
+    mem_limit: 256m
+    pids_limit: 96
+    stop_grace_period: 30s
+
+networks:
+  edge:
+  application:
+    internal: true
+  data:
+    internal: true
+
+volumes:
+  postgres-data:
+  redis-data:
+
+secrets:
+  app_key:
+    environment: APP_KEY
+  audit_integrity_key:
+    environment: AUDIT_INTEGRITY_KEY
+  postgres_password:
+    environment: POSTGRES_PASSWORD
+  redis_password:
+    environment: REDIS_PASSWORD

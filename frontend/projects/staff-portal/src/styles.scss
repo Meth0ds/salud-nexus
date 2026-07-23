@@ -1,0 +1,64 @@
+@use '../../design-system/src/styles/theme';
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-block-size: 100dvh;
+  margin: 0;
+  color: var(--sn-color-text);
+  background: var(--sn-color-canvas);
+  font: 400 1rem/1.5 var(--sn-font-body);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.bootstrap-failure {
+  max-inline-size: 38rem;
+  margin: 12vh auto;
+  border: 1px solid var(--sn-color-status-danger-border);
+  border-radius: var(--sn-radius-xl);
+  padding: 2rem;
+  color: var(--sn-color-status-danger-text);
+  background: var(--sn-color-status-danger-surface);
+  box-shadow: var(--sn-elevation-2);
+}
+
+.bootstrap-failure h1 {
+  font: 740 var(--sn-type-heading-md)/1.2 var(--sn-font-display);
+}
+
+.material-symbols-rounded,
+.mat-icon {
+  font-family: 'Material Symbols Rounded';
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

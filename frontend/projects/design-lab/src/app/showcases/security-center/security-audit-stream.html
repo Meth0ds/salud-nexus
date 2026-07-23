@@ -1,0 +1,142 @@
+<p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+<div class="audit-layout" [class.audit-layout--detail-hidden]="!detailVisible()">
+  <section class="audit-panel" aria-labelledby="audit-title">
+    <header class="panel-heading">
+      <div>
+        <p class="eyebrow">Registro inmutable</p>
+        <h2 id="audit-title">Actividad reciente</h2>
+      </div>
+      <div class="filters" role="group" aria-label="Filtrar eventos por gravedad">
+        @for (filter of filters; track filter) {
+          <button
+            type="button"
+            [class.filter-active]="activeFilter() === filter"
+            [attr.aria-pressed]="activeFilter() === filter"
+            (click)="applyFilter(filter)"
+          >
+            {{ filter }}
+          </button>
+        }
+      </div>
+    </header>
+    <div
+      class="table-scroll"
+      tabindex="0"
+      aria-label="Tabla desplazable de eventos de demostración"
+    >
+      <table>
+        <caption>
+          Eventos sintéticos recientes; no contienen información sanitaria real.
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Hora</th>
+            <th scope="col">Gravedad</th>
+            <th scope="col">Acción</th>
+            <th scope="col">Actor</th>
+            <th scope="col">Recurso</th>
+            <th scope="col"><span class="sr-only">Inspeccionar</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (event of filteredEvents(); track event.id) {
+            <tr [class.selected-row]="selectedEventId() === event.id">
+              <td>
+                <time>{{ event.time }}</time>
+              </td>
+              <td>
+                <span
+                  class="severity"
+                  [class.severity--critical]="event.severity === 'Crítico'"
+                  [class.severity--warning]="event.severity === 'Aviso'"
+                  ><i aria-hidden="true"></i>{{ event.severity }}</span
+                >
+              </td>
+              <td>
+                <strong>{{ event.action }}</strong
+                ><small>{{ event.id }}</small>
+              </td>
+              <td>{{ event.actor }}</td>
+              <td>{{ event.resource }}</td>
+              <td>
+                <button
+                  class="inspect-button"
+                  type="button"
+                  [attr.aria-label]="'Inspeccionar ' + event.id"
+                  [attr.aria-pressed]="selectedEventId() === event.id"
+                  (click)="inspectEvent(event)"
+                >
+                  <mat-icon aria-hidden="true">arrow_forward</mat-icon>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6" class="empty-state">No hay eventos con este filtro.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (detailVisible()) {
+    <aside
+      class="event-detail"
+      aria-labelledby="event-detail-title"
+      animate.enter="detail-enter"
+      animate.leave="detail-leave"
+    >
+      <header>
+        <div>
+          <p class="eyebrow">Evento seleccionado</p>
+          <h2 id="event-detail-title">{{ selectedEvent().id }}</h2>
+        </div>
+        <button
+          class="icon-button"
+          type="button"
+          aria-label="Cerrar detalle del evento"
+          (click)="closeDetail()"
+        >
+          <mat-icon aria-hidden="true">close</mat-icon>
+        </button>
+      </header>
+      <div class="event-verdict">
+        <mat-icon aria-hidden="true">gpp_good</mat-icon>
+        <div><strong>Registro íntegro</strong><span>Firma y secuencia verificadas</span></div>
+      </div>
+      <dl>
+        <div>
+          <dt>Acción</dt>
+          <dd>{{ selectedEvent().action }}</dd>
+        </div>
+        <div>
+          <dt>Actor minimizado</dt>
+          <dd>{{ selectedEvent().actor }}</dd>
+        </div>
+        <div>
+          <dt>Canal</dt>
+          <dd>{{ selectedEvent().channel }}</dd>
+        </div>
+        <div>
+          <dt>Recurso minimizado</dt>
+          <dd>{{ selectedEvent().resource }}</dd>
+        </div>
+        <div>
+          <dt>Hash abreviado</dt>
+          <dd>
+            <code>{{ selectedEvent().hash }}</code>
+          </dd>
+        </div>
+      </dl>
+      <div class="detail-actions">
+        <button matButton="filled" type="button">Abrir investigación</button
+        ><button matButton="outlined" type="button">Copiar ID opaco</button>
+      </div>
+      <p class="privacy-note">
+        <mat-icon aria-hidden="true">visibility_off</mat-icon> Los atributos sensibles permanecen
+        ocultos hasta justificar el acceso.
+      </p>
+    </aside>
+  }
+</div>

@@ -1,0 +1,177 @@
+<article class="agenda-page">
+  <header class="page-heading">
+    <div>
+      <p class="eyebrow">Turno clínico · domingo, 19 de julio</p>
+      <h1>Agenda clínica</h1>
+      <p>Consulta 4 · Medicina interna · Datos sintéticos de demostración</p>
+    </div>
+    <div class="heading-actions">
+      <span class="sync-state">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">cloud_done</mat-icon>
+        Sincronizada hace 1 min
+      </span>
+      <button mat-stroked-button type="button" (click)="refresh()">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">refresh</mat-icon>
+        Actualizar
+      </button>
+    </div>
+  </header>
+
+  <div class="state-announcer" aria-live="polite" aria-atomic="true">
+    @if (workspace.schedule().status === 'loading') {
+      Cargando la agenda clínica.
+    } @else if (workspace.schedule().status === 'ready') {
+      Agenda actualizada con {{ workspace.schedule().data.length }} citas.
+    }
+  </div>
+
+  @switch (workspace.schedule().status) {
+    @case ('idle') {
+      <section class="state-panel" data-state="loading">
+        <mat-spinner diameter="32" />
+        <p>Preparando el turno seguro…</p>
+      </section>
+    }
+    @case ('loading') {
+      <section class="state-panel" data-state="loading">
+        <mat-spinner diameter="32" />
+        <p>{{ workspace.schedule().message }}</p>
+      </section>
+    }
+    @case ('empty') {
+      <section class="state-panel" data-state="empty">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">event_available</mat-icon>
+        <h2>No hay citas para este turno</h2>
+        <p>La agenda está libre para el contexto seleccionado.</p>
+        <button mat-stroked-button type="button" (click)="refresh()">Actualizar agenda</button>
+      </section>
+    }
+    @case ('error') {
+      <section class="state-panel error" data-state="error" role="alert">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">sync_problem</mat-icon>
+        <h2>No se pudo cargar la agenda</h2>
+        <p>{{ workspace.schedule().message }}</p>
+        <button mat-flat-button type="button" (click)="refresh()">Reintentar</button>
+      </section>
+    }
+    @case ('ready') {
+      <section class="shift-summary" aria-label="Resumen del turno">
+        <span
+          ><strong>{{ workspace.schedule().data.length }}</strong> citas</span
+        >
+        <span
+          ><strong>{{ waitingCount() }}</strong> en espera</span
+        >
+        <span
+          ><strong>{{ completedCount() }}</strong> finalizada</span
+        >
+        <span class="on-time"><i aria-hidden="true"></i> Ritmo del turno: puntual</span>
+      </section>
+
+      <div class="agenda-layout" animate.enter="page-enter">
+        <section class="timeline-panel" aria-labelledby="timeline-title">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">Línea de guardia</p>
+              <h2 id="timeline-title">Hoy</h2>
+            </div>
+            <span>08:00 — 15:00</span>
+          </div>
+
+          <ol class="timeline">
+            @for (appointment of workspace.schedule().data; track appointment.id) {
+              <li [attr.data-status]="appointment.status">
+                <time>{{ appointment.time }}</time>
+                <button
+                  type="button"
+                  class="appointment"
+                  [attr.data-appointment-id]="appointment.id"
+                  [attr.aria-pressed]="selectedAppointmentId() === appointment.id"
+                  (click)="selectAppointment(appointment)"
+                >
+                  <span class="avatar" aria-hidden="true">{{ appointment.initials }}</span>
+                  <span class="appointment-copy">
+                    <strong>{{ appointment.patientDisplayName }}</strong>
+                    <small>{{ appointment.visitType }} · {{ appointment.room }}</small>
+                  </span>
+                  @if (appointment.priority === 'attention') {
+                    <span class="attention">
+                      <mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                        >priority_high</mat-icon
+                      >
+                      Atención
+                    </span>
+                  }
+                  <span class="status">{{ statusLabel(appointment.status) }}</span>
+                  <span class="duration">{{ appointment.durationMinutes }} min</span>
+                </button>
+              </li>
+            }
+          </ol>
+        </section>
+
+        <aside class="day-brief" aria-labelledby="brief-title">
+          <p class="section-kicker">Preparación</p>
+          <h2 id="brief-title">Antes de la siguiente cita</h2>
+          <ul>
+            <li>
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">task_alt</mat-icon>
+              <span
+                ><strong>Consentimiento registrado</strong
+                ><small>Comprobación de servidor completada</small></span
+              >
+            </li>
+            <li>
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true"
+                >clinical_notes</mat-icon
+              >
+              <span
+                ><strong>Resumen disponible</strong
+                ><small>Solo se cargará al abrir el episodio</small></span
+              >
+            </li>
+            <li>
+              <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">shield_lock</mat-icon>
+              <span
+                ><strong>Acceso auditado</strong
+                ><small>Contexto y finalidad asistencial activos</small></span
+              >
+            </li>
+          </ul>
+        </aside>
+      </div>
+    }
+  }
+
+  @if (selectedAppointment(); as appointment) {
+    <aside
+      class="patient-detail"
+      aria-labelledby="patient-detail-title"
+      animate.enter="detail-enter"
+    >
+      <div class="detail-accent" aria-hidden="true"></div>
+      <div>
+        <p class="section-kicker">Ficha operativa · {{ appointment.time }}</p>
+        <h2 id="patient-detail-title">{{ appointment.patientDisplayName }}</h2>
+        <p>Datos sintéticos de demostración. No se ha cargado información clínica sensible.</p>
+      </div>
+      <dl>
+        <div>
+          <dt>Tipo</dt>
+          <dd>{{ appointment.visitType }}</dd>
+        </div>
+        <div>
+          <dt>Ubicación</dt>
+          <dd>{{ appointment.room }}</dd>
+        </div>
+        <div>
+          <dt>Estado</dt>
+          <dd>{{ statusLabel(appointment.status) }}</dd>
+        </div>
+      </dl>
+      <button mat-icon-button type="button" aria-label="Cerrar detalle" (click)="closeDetail()">
+        <mat-icon fontSet="material-symbols-rounded" aria-hidden="true">close</mat-icon>
+      </button>
+    </aside>
+  }
+</article>

@@ -1,0 +1,155 @@
+- generic [ref=f2e59]:
+  - link "Saltar al contenido" [ref=f2e60] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f2e61]:
+    - banner [ref=f2e62]:
+      - link "Salud Nexus, ir al inicio" [ref=f2e63] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e67]:
+          - strong [ref=f2e68]: salud
+          - text: nexus
+      - button "Abrir menú de la cuenta de demostración" [ref=f2e70] [cursor=pointer]: LM
+    - main [active] [ref=f2e72]:
+      - generic [ref=f2e74]:
+        - generic [ref=f2e75]:
+          - generic [ref=f2e76]:
+            - paragraph [ref=f2e77]: Domingo, 19 de julio
+            - heading "Buenos días, Laura" [level=1] [ref=f2e78]
+            - paragraph [ref=f2e79]: Esto es lo importante para preparar tu atención esta semana.
+          - link [ref=f2e80] [cursor=pointer]:
+            - /url: /citas/reservar
+            - generic [ref=f2e81]:
+              - generic [ref=f2e82]: add
+              - text: Pedir una cita
+        - complementary "Información de privacidad y demostración" [ref=f2e86]:
+          - generic [ref=f2e87]: shield_lock
+          - generic [ref=f2e90]:
+            - strong [ref=f2e91]: Datos totalmente sintéticos
+            - paragraph [ref=f2e92]: Solo mostramos lo necesario para cada tarea. Esta demo no contiene información de pacientes reales.
+          - link "Revisar accesos" [ref=f2e93] [cursor=pointer]:
+            - /url: /privacidad
+        - region [ref=f2e94]:
+          - generic [ref=f2e95]:
+            - generic [ref=f2e96]:
+              - paragraph [ref=f2e97]: Hilo de cuidados
+              - heading "Tu próximo paso, sin perder el contexto" [level=2] [ref=f2e98]
+            - link [ref=f2e99] [cursor=pointer]:
+              - /url: /citas
+              - generic [ref=f2e100]:
+                - text: Ver recorrido completo
+                - generic [ref=f2e101]: arrow_forward
+          - list [ref=f2e105]:
+            - listitem [ref=f2e106]:
+              - generic [ref=f2e107]: task_alt
+              - time [ref=f2e110]: Hoy · 09:10
+              - strong [ref=f2e111]: Solicitud revisada
+              - generic [ref=f2e112]: El centro confirmó tu petición.
+            - listitem [ref=f2e113]:
+              - generic [ref=f2e114]: fact_check
+              - time [ref=f2e117]: Antes del jueves
+              - strong [ref=f2e118]: Preparación
+              - generic [ref=f2e119]: Revisa las indicaciones del centro.
+            - listitem [ref=f2e120]:
+              - generic [ref=f2e121]: clinical_notes
+              - time [ref=f2e124]: Jue 23 · 10:30
+              - strong [ref=f2e125]: Próxima cita
+              - generic [ref=f2e126]: Centro Atlántico · consulta 2.14
+            - listitem [ref=f2e127]:
+              - generic [ref=f2e128]: event_available
+              - generic [ref=f2e131]: Después de la cita
+              - strong [ref=f2e132]: Seguimiento
+              - generic [ref=f2e133]: Recibirás aquí los siguientes pasos.
+        - generic [ref=f2e134]:
+          - article [ref=f2e135]:
+            - paragraph [ref=f2e136]:
+              - generic [ref=f2e137]: calendar_today
+              - text: Próxima cita
+            - generic [ref=f2e139]:
+              - generic [ref=f2e140]: JUL
+              - strong [ref=f2e141]: "23"
+              - generic [ref=f2e142]: JUE
+            - generic [ref=f2e143]:
+              - heading "Consulta de seguimiento" [level=2] [ref=f2e144]
+              - paragraph [ref=f2e145]: 10:30–11:00 · Hora peninsular
+              - paragraph [ref=f2e146]: Centro Atlántico · Consulta 2.14
+              - generic [ref=f2e147]:
+                - link "Ver detalles" [ref=f2e148] [cursor=pointer]:
+                  - /url: /citas
+                - link "Pedir otra cita" [ref=f2e152] [cursor=pointer]:
+                  - /url: /citas/reservar
+          - article [ref=f2e156]:
+            - generic [ref=f2e157]:
+              - generic [ref=f2e158]:
+                - paragraph [ref=f2e159]: Información del centro
+                - heading "Medicación comunicada" [level=2] [ref=f2e160]
+              - link "Ver todo" [ref=f2e161] [cursor=pointer]:
+                - /url: /medicacion
+            - list [ref=f2e162]:
+              - listitem [ref=f2e163]:
+                - generic [ref=f2e164]: pill
+                - generic [ref=f2e167]:
+                  - strong [ref=f2e168]: Losartán 50 mg · comprimidos
+                  - generic [ref=f2e169]: 1 comprimido cada 24 horas (mañana)
+              - listitem [ref=f2e170]:
+                - generic [ref=f2e171]: pill
+                - generic [ref=f2e174]:
+                  - strong [ref=f2e175]: Metformina 850 mg · comprimidos
+                  - generic [ref=f2e176]: 1 comprimido cada 12 horas (desayuno y cena)
+          - article [ref=f2e177]:
+            - generic [ref=f2e178]:
+              - generic [ref=f2e179]:
+                - paragraph [ref=f2e180]: Novedades
+                - heading "Documentos recientes" [level=2] [ref=f2e181]
+              - link "Ver todos" [ref=f2e182] [cursor=pointer]:
+                - /url: /documentos
+            - list [ref=f2e183]:
+              - listitem [ref=f2e184]:
+                - generic [ref=f2e185]: description
+                - generic [ref=f2e188]:
+                  - strong [ref=f2e189]: Resumen de atención
+                  - generic [ref=f2e190]: 15 de julio de 2026 · PDF
+              - listitem [ref=f2e191]:
+                - generic [ref=f2e192]: description
+                - generic [ref=f2e195]:
+                  - strong [ref=f2e196]: Resultados de laboratorio
+                  - generic [ref=f2e197]: 8 de julio de 2026 · PDF
+          - article [ref=f2e198]:
+            - generic [ref=f2e199]:
+              - generic [ref=f2e200]:
+                - paragraph [ref=f2e201]: Transparencia
+                - heading "Accesos recientes" [level=2] [ref=f2e202]
+              - link "Ver historial" [ref=f2e203] [cursor=pointer]:
+                - /url: /privacidad
+            - list [ref=f2e204]:
+              - listitem [ref=f2e205]:
+                - generic [ref=f2e206]: visibility
+                - generic [ref=f2e209]:
+                  - strong [ref=f2e210]: Dra. Elena Robles
+                  - generic [ref=f2e211]: 15 de julio de 2026 · 09:12
+                - generic [ref=f2e213]:
+                  - generic [ref=f2e214]: check_circle
+                  - generic [ref=f2e216]: Legítimo
+              - listitem [ref=f2e217]:
+                - generic [ref=f2e218]: visibility
+                - generic [ref=f2e221]:
+                  - strong [ref=f2e222]: Equipo de enfermería
+                  - generic [ref=f2e223]: 14 de julio de 2026 · 16:45
+                - generic [ref=f2e225]:
+                  - generic [ref=f2e226]: check_circle
+                  - generic [ref=f2e228]: Legítimo
+    - navigation "Navegación principal móvil" [ref=f2e229]:
+      - link "Inicio" [ref=f2e230] [cursor=pointer]:
+        - /url: /inicio
+        - generic [ref=f2e231]: space_dashboard
+      - link "Citas" [ref=f2e234] [cursor=pointer]:
+        - /url: /citas
+        - generic [ref=f2e235]: calendar_month
+      - link "Medicación" [ref=f2e238] [cursor=pointer]:
+        - /url: /medicacion
+        - generic [ref=f2e239]: medication
+      - link "Documentos" [ref=f2e242] [cursor=pointer]:
+        - /url: /documentos
+        - generic [ref=f2e243]: folder_open
+      - link "Privacidad" [ref=f2e246] [cursor=pointer]:
+        - /url: /privacidad
+        - generic [ref=f2e247]: shield_lock

@@ -1,0 +1,134 @@
+<p class="sr-only" aria-live="polite">{{ announcement() }}</p>
+<div class="clinical-grid">
+  <section class="schedule-panel" aria-labelledby="schedule-title">
+    <header class="panel-heading">
+      <div>
+        <p class="eyebrow">Carril temporal</p>
+        <h2 id="schedule-title">Consulta 2.14</h2>
+      </div>
+      <button matButton="text" type="button">
+        <mat-icon aria-hidden="true">filter_list</mat-icon> Filtrar
+      </button>
+    </header>
+
+    <div class="schedule" aria-label="Citas desde las 8:00 hasta las 13:00">
+      <ol class="time-axis" aria-hidden="true">
+        @for (time of ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00']; track time) {
+          <li>{{ time }}</li>
+        }
+      </ol>
+      <ol class="appointment-list">
+        @for (appointment of appointments; track appointment.id) {
+          <li>
+            <button
+              class="appointment"
+              [class.appointment--active]="selectedAppointmentId() === appointment.id"
+              [class.appointment--amber]="appointment.tone === 'amber'"
+              [class.appointment--blue]="appointment.tone === 'blue'"
+              type="button"
+              [attr.aria-pressed]="selectedAppointmentId() === appointment.id"
+              (click)="selectAppointment(appointment)"
+            >
+              <span class="appointment-time">{{ appointment.start }}–{{ appointment.end }}</span>
+              <span class="appointment-main"
+                ><strong>{{ appointment.patientCode }}</strong
+                ><small>{{ appointment.purpose }}</small></span
+              >
+              <span class="appointment-meta"
+                ><small>{{ appointment.room }}</small
+                ><em>{{ appointment.status }}</em></span
+              >
+              <mat-icon aria-hidden="true">chevron_right</mat-icon>
+            </button>
+          </li>
+        }
+      </ol>
+      <div class="now-line" aria-label="Hora actual: 10:12"><span>10:12</span></div>
+    </div>
+  </section>
+
+  <aside class="context-panel" aria-labelledby="context-title">
+    <header class="context-header">
+      <div>
+        <span class="context-avatar" aria-hidden="true">D</span>
+        <div>
+          <p class="eyebrow">Contexto seleccionado</p>
+          <h2 id="context-title">{{ selectedAppointment().patientCode }}</h2>
+        </div>
+      </div>
+      <button
+        class="icon-button"
+        type="button"
+        [attr.aria-expanded]="contextExpanded()"
+        aria-controls="patient-context"
+        (click)="toggleContext()"
+      >
+        <mat-icon aria-hidden="true">{{
+          contextExpanded() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+        }}</mat-icon>
+        <span class="sr-only"
+          >{{ contextExpanded() ? 'Cerrar' : 'Abrir' }} contexto asistencial</span
+        >
+      </button>
+    </header>
+
+    @if (contextExpanded()) {
+      <div id="patient-context" animate.enter="context-enter" animate.leave="context-leave">
+        <div class="privacy-scope">
+          <mat-icon aria-hidden="true">verified_user</mat-icon>
+          <div>
+            <strong>Acceso asistencial activo</strong><span>Ámbito mínimo · sesión auditada</span>
+          </div>
+        </div>
+        <dl class="appointment-detail">
+          <div>
+            <dt>Hora</dt>
+            <dd>{{ selectedAppointment().start }}–{{ selectedAppointment().end }}</dd>
+          </div>
+          <div>
+            <dt>Motivo</dt>
+            <dd>{{ selectedAppointment().purpose }}</dd>
+          </div>
+          <div>
+            <dt>Ubicación</dt>
+            <dd>{{ selectedAppointment().room }}</dd>
+          </div>
+          <div>
+            <dt>Estado</dt>
+            <dd>
+              <span class="status-tag">{{ selectedAppointment().status }}</span>
+            </dd>
+          </div>
+        </dl>
+        <section class="preparation" aria-labelledby="preparation-title">
+          <div class="subheading">
+            <h3 id="preparation-title">Antes de empezar</h3>
+            <span>2 de 3</span>
+          </div>
+          <ul>
+            <li class="complete">
+              <mat-icon aria-hidden="true">check_circle</mat-icon><span>Identidad verificada</span>
+            </li>
+            <li class="complete">
+              <mat-icon aria-hidden="true">check_circle</mat-icon
+              ><span>Consentimiento revisado</span>
+            </li>
+            <li>
+              <mat-icon aria-hidden="true">radio_button_unchecked</mat-icon
+              ><span>Confirmar presencia</span>
+            </li>
+          </ul>
+        </section>
+        <div class="context-actions">
+          <button matButton="filled" type="button">
+            <mat-icon aria-hidden="true">meeting_room</mat-icon> Abrir consulta</button
+          ><button matButton="outlined" type="button">Ver ficha mínima</button>
+        </div>
+        <p class="audit-note">
+          <mat-icon aria-hidden="true">history</mat-icon> El acceso y las acciones se registran en
+          el servidor.
+        </p>
+      </div>
+    }
+  </aside>
+</div>
