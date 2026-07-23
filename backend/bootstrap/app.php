@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Middleware\ApplySecurityHeaders;
 use App\Http\Middleware\AssignRequestId;
 use App\Http\Middleware\EnforceApiRequestConstraints;
+use App\Http\Middleware\RequireAuthenticationAssurance;
 use App\Support\Http\ProblemDetailsFactory;
 use App\Support\Logging\SanitizedExceptionReporter;
 use Illuminate\Foundation\Application;
@@ -28,6 +29,9 @@ return Application::configure(basePath: dirname(__DIR__))
             at: static fn (): array => config('api.trusted_hosts', []),
             subdomains: false,
         );
+        $middleware->alias([
+            'auth.assurance' => RequireAuthenticationAssurance::class,
+        ]);
         $middleware->append([
             AssignRequestId::class,
             ApplySecurityHeaders::class,

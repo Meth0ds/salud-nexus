@@ -25,7 +25,11 @@ final class BeginTotpEnrollmentController extends Controller
         BeginTotpEnrollment $beginEnrollment,
     ): JsonResponse {
         $account = $assurance->handle($request);
-        $method = $beginEnrollment->handle($account);
+        $requestPublicId = $request->attributes->get(AssignRequestId::ATTRIBUTE);
+        $method = $beginEnrollment->handle(
+            $account,
+            is_string($requestPublicId) ? $requestPublicId : '',
+        );
 
         return response()->json([
             'data' => [

@@ -1,0 +1,260 @@
+<div class="sn-patient-page account-security">
+  <header class="sn-page-header">
+    <div>
+      <p class="sn-eyebrow">Seguridad de la cuenta</p>
+      <h1>Protege tu acceso</h1>
+      <p>
+        Añade una aplicación de autenticación y conserva códigos de recuperación de un solo uso.
+      </p>
+    </div>
+    @if (stage() === 'active') {
+      <sn-status-chip label="AAL2 disponible" tone="success" />
+    }
+  </header>
+
+  <p class="sn-visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+  <section class="security-layout">
+    <aside class="enrollment-steps" aria-label="Pasos para proteger la cuenta">
+      <p class="sn-eyebrow">Aplicación de autenticación</p>
+      <ol>
+        <li [class.is-current]="stage() === 'disabled' || stage() === 'starting'">
+          <span>1</span>
+          <p><strong>Preparar</strong><small>Comprueba tu sesión.</small></p>
+        </li>
+        <li [class.is-current]="stage() === 'scanning'">
+          <span>2</span>
+          <p><strong>Vincular</strong><small>Escanea una sola vez.</small></p>
+        </li>
+        <li [class.is-current]="stage() === 'confirming'">
+          <span>3</span>
+          <p><strong>Confirmar</strong><small>Escribe un código.</small></p>
+        </li>
+        <li [class.is-current]="stage() === 'recovery' || stage() === 'active'">
+          <span>4</span>
+          <p><strong>Recuperación</strong><small>Guarda y retira.</small></p>
+        </li>
+      </ol>
+    </aside>
+
+    <article
+      class="security-card"
+      [attr.aria-busy]="stage() === 'loading' || stage() === 'starting'"
+    >
+      @switch (stage()) {
+        @case ('loading') {
+          <div class="busy-state" role="status">
+            <mat-spinner [diameter]="36" />
+            <p>Consultando la protección de tu cuenta…</p>
+          </div>
+        }
+        @case ('disabled') {
+          <div class="stage-content">
+            <span class="stage-icon"><sn-icon name="phonelink_lock" [size]="27" /></span>
+            <p class="sn-eyebrow">Segundo factor</p>
+            <h2 #stageHeading tabindex="-1">Aún no has configurado una aplicación</h2>
+            <p>Después de tu contraseña pediremos un código temporal para abrir una sesión AAL2.</p>
+            <ul class="benefits">
+              <li>
+                <sn-icon name="check_circle" [size]="18" /> Códigos temporales de un solo uso.
+              </li>
+              <li><sn-icon name="check_circle" [size]="18" /> Intentos y caducidad limitados.</li>
+              <li>
+                <sn-icon name="check_circle" [size]="18" /> Recuperación sin guardar plaintext.
+              </li>
+            </ul>
+            <button
+              matButton="filled"
+              data-testid="start-enrollment"
+              type="button"
+              (click)="startEnrollment()"
+            >
+              Configurar aplicación
+              <sn-icon name="arrow_forward" [size]="18" />
+            </button>
+          </div>
+        }
+        @case ('starting') {
+          <div class="busy-state" role="status">
+            <mat-spinner [diameter]="36" />
+            <h2 #stageHeading tabindex="-1">Preparando un QR de un solo uso</h2>
+            <p>No cierres esta pantalla hasta completar la vinculación.</p>
+          </div>
+        }
+        @case ('scanning') {
+          <div class="stage-content">
+            <div class="stage-heading">
+              <span>Paso 2 de 4</span>
+              <small><sn-icon name="schedule" [size]="16" /> Caduca pronto</small>
+            </div>
+            <h2 #stageHeading tabindex="-1">Escanea desde tu aplicación</h2>
+            <p>Añade una cuenta nueva y enfoca el código. La imagen se retirará al continuar.</p>
+            @if (qrUrl(); as source) {
+              <div class="qr-stage">
+                <img [src]="source" alt="Código QR temporal para configurar el segundo factor" />
+                <div>
+                  <strong>Visible una sola vez</strong>
+                  <span>No hagas capturas ni lo compartas.</span>
+                </div>
+              </div>
+            }
+            @if (isDemo) {
+              <p class="demo-note">
+                <sn-icon name="science" [size]="18" />
+                QR sintético no escaneable. En el siguiente paso usa <strong>123456</strong>.
+              </p>
+            }
+            <button
+              matButton="filled"
+              data-testid="qr-scanned"
+              type="button"
+              (click)="continueToConfirmation()"
+            >
+              Ya lo he escaneado
+              <sn-icon name="arrow_forward" [size]="18" />
+            </button>
+          </div>
+        }
+        @case ('confirming') {
+          <div class="stage-content">
+            <div class="stage-heading"><span>Paso 3 de 4</span><small>Verificación</small></div>
+            <h2 #stageHeading id="confirmation-title" tabindex="-1">Comprueba la vinculación</h2>
+            <p>Escribe un código nuevo de la aplicación para activar la protección.</p>
+            <form novalidate (submit)="confirmEnrollment(); $event.preventDefault()">
+              <mat-form-field appearance="outline">
+                <mat-label>Código temporal</mat-label>
+                <input
+                  #confirmationInput
+                  matInput
+                  id="totp-confirmation-code"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  [formField]="confirmationForm.code"
+                />
+                <mat-hint>Seis dígitos; no se guardan en el navegador.</mat-hint>
+                @if (
+                  confirmationForm.code().touched() && confirmationForm.code().errors()[0];
+                  as error
+                ) {
+                  <mat-error>{{ error.message }}</mat-error>
+                }
+              </mat-form-field>
+              @if (errorMessage()) {
+                <div class="security-error" role="alert">
+                  <sn-icon name="error" [size]="20" /> {{ errorMessage() }}
+                </div>
+              }
+              <button
+                matButton="filled"
+                data-testid="confirm-enrollment"
+                type="submit"
+                [disabled]="submitting()"
+              >
+                @if (submitting()) {
+                  <mat-spinner [diameter]="18" aria-hidden="true" />
+                  Verificando…
+                } @else {
+                  Confirmar protección
+                  <sn-icon name="arrow_forward" [size]="18" />
+                }
+              </button>
+            </form>
+          </div>
+        }
+        @case ('recovery') {
+          <div class="stage-content recovery-stage">
+            <div class="stage-heading">
+              <span>Paso 4 de 4</span><small>Una única entrega</small>
+            </div>
+            <h2 #stageHeading tabindex="-1">Guarda tus códigos de recuperación</h2>
+            <p>
+              Cada código funciona una vez. Al terminar desaparecerán de esta pantalla y no podrán
+              recuperarse.
+            </p>
+            <ol class="recovery-codes" aria-label="Códigos de recuperación">
+              @for (code of recoveryCodes(); track code) {
+                <li>
+                  <code>{{ code }}</code>
+                </li>
+              }
+            </ol>
+            <div class="recovery-actions">
+              <button matButton="outlined" type="button" (click)="copyRecoveryCodes()">
+                <sn-icon name="content_copy" [size]="18" /> Copiar
+              </button>
+              <button matButton="outlined" type="button" (click)="downloadRecoveryCodes()">
+                <sn-icon name="download" [size]="18" /> Descargar desde memoria
+              </button>
+            </div>
+            <mat-checkbox
+              data-testid="confirm-custody"
+              [checked]="custodyConfirmed()"
+              (change)="custodyConfirmed.set($event.checked)"
+            >
+              He guardado los códigos en un lugar privado.
+            </mat-checkbox>
+            <button
+              matButton="filled"
+              data-testid="finish-enrollment"
+              type="button"
+              [disabled]="!custodyConfirmed()"
+              (click)="finishEnrollment()"
+            >
+              Terminar y retirar códigos
+            </button>
+          </div>
+        }
+        @case ('active') {
+          <div class="stage-content active-state">
+            <span class="stage-icon stage-icon--success">
+              <sn-icon name="verified_user" [size]="28" />
+            </span>
+            <p class="sn-eyebrow">Protección activa</p>
+            <h2 #stageHeading tabindex="-1">Segundo factor activo</h2>
+            <p>
+              Tu próximo acceso solicitará contraseña y un segundo factor antes de abrir sesión.
+            </p>
+            <dl>
+              <div>
+                <dt>Método</dt>
+                <dd>Aplicación TOTP</dd>
+              </div>
+              <div>
+                <dt>Nivel disponible</dt>
+                <dd>AAL2</dd>
+              </div>
+              <div>
+                <dt>Códigos restantes</dt>
+                <dd>{{ activeRecoveryCount() }}</dd>
+              </div>
+            </dl>
+            <a matButton="outlined" routerLink="/privacidad">Revisar privacidad y accesos</a>
+          </div>
+        }
+        @case ('error') {
+          <div class="stage-content error-state" role="alert">
+            <span class="stage-icon"><sn-icon name="error" [size]="27" /></span>
+            <h2 #stageHeading tabindex="-1">No pudimos completar la comprobación</h2>
+            <p>{{ errorMessage() }}</p>
+            <button matButton="filled" type="button" (click)="retry()">Volver a intentar</button>
+          </div>
+        }
+      }
+    </article>
+
+    <aside class="custody-note" aria-label="Custodia del segundo factor">
+      <span><sn-icon name="encrypted" [size]="24" /></span>
+      <p class="sn-eyebrow">Custodia segura</p>
+      <h2>El secreto se cifra antes de guardarse.</h2>
+      <p>
+        El QR caduca, los códigos se verifican con hash y el centro registra los cambios sin incluir
+        secretos.
+      </p>
+      <div>
+        <strong>Limitación conocida</strong>
+        <small>TOTP mejora el acceso; una passkey ofrece resistencia superior al phishing.</small>
+      </div>
+    </aside>
+  </section>
+</div>

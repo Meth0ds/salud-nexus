@@ -98,6 +98,25 @@ final class MfaEnrollmentTest extends TestCase
         self::assertNotNull($method->confirmed_at);
         self::assertNull($method->enrollment_expires_at);
         self::assertSame(10, $method->recoveryCodes()->count());
+        self::assertSame(
+            [
+                'mfa.enrollment.started',
+                'mfa.enrollment.qr_disclosed',
+                'mfa.enrollment.confirmed',
+            ],
+            DB::table('identity_security_events')
+                ->where('identity_account_id', $account->id)
+                ->orderBy('id')
+                ->pluck('event_type')
+                ->all(),
+        );
+        $securityMetadata = DB::table('identity_security_events')
+            ->where('identity_account_id', $account->id)
+            ->pluck('metadata_json')
+            ->implode(' ');
+        self::assertStringNotContainsString((string) $account->email, $securityMetadata);
+        self::assertStringNotContainsString($method->secret, $securityMetadata);
+        self::assertStringNotContainsString($code, $securityMetadata);
         self::assertNotSame($sessionIdBeforeConfirmation, $this->app['session']->getId());
         self::assertSame(2, $this->app['session']->get(BrowserSession::LEVEL));
         self::assertSame('password+totp', $this->app['session']->get(BrowserSession::METHOD));

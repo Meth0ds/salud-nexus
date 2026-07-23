@@ -2,12 +2,15 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 
-import { provideDemoPatientRepository } from '../../core/patient-repository';
+import { PATIENT_REPOSITORY, provideDemoPatientRepository } from '../../core/patient-repository';
 import { PatientSessionStore } from '../../core/session.store';
 import { Login } from './login';
 
 @Component({ template: '<p>Inicio protegido</p>' })
 class ProtectedHomeStub {}
+
+@Component({ template: '<p>Segundo factor</p>' })
+class MfaChallengeStub {}
 
 describe('Login', () => {
   beforeEach(() => {
@@ -15,7 +18,10 @@ describe('Login', () => {
       imports: [Login],
       providers: [
         provideDemoPatientRepository(),
-        provideRouter([{ path: 'inicio', component: ProtectedHomeStub }]),
+        provideRouter([
+          { path: 'inicio', component: ProtectedHomeStub },
+          { path: 'verificar-segundo-factor', component: MfaChallengeStub },
+        ]),
       ],
     });
   });
@@ -54,5 +60,44 @@ describe('Login', () => {
 
     expect(TestBed.inject(PatientSessionStore).isAuthenticated()).toBe(true);
     expect(TestBed.inject(Router).url).toBe('/inicio');
+  });
+
+  it('navigates to the second-factor ceremony without opening a patient session', async () => {
+    TestBed.overrideProvider(PATIENT_REPOSITORY, {
+      useValue: {
+        authenticate: () =>
+          Promise.resolve({
+            kind: 'mfa-required',
+            challenge: {
+              id: '019b1234-5678-7abc-8def-1234567890b8',
+              intent: 'login',
+              purpose: null,
+              methods: ['totp', 'recovery'],
+              expiresAt: '2026-07-23T00:10:00+00:00',
+              attemptsRemaining: 5,
+              requestId: '019b1234-5678-7abc-8def-1234567890ae',
+            },
+          }),
+      },
+    });
+    const fixture = TestBed.createComponent(Login);
+    await fixture.whenStable();
+    const page = fixture.nativeElement as HTMLElement;
+    const email = page.querySelector<HTMLInputElement>('#demo-email');
+    const password = page.querySelector<HTMLInputElement>('#access-secret');
+
+    if (email && password) {
+      email.value = 'paciente@example.test';
+      email.dispatchEvent(new Event('input'));
+      password.value = 'correct horse battery staple';
+      password.dispatchEvent(new Event('input'));
+    }
+    page
+      .querySelector<HTMLFormElement>('form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+
+    expect(TestBed.inject(PatientSessionStore).isAuthenticated()).toBe(false);
+    expect(TestBed.inject(Router).url).toBe('/verificar-segundo-factor');
   });
 });

@@ -1,3 +1,5 @@
+import type { MfaChallengeView } from 'auth';
+
 export type AttendanceMode = 'in-person' | 'phone' | 'video';
 export type AppointmentStatus = 'cancelled' | 'completed' | 'no-show' | 'scheduled';
 export type DemoScenario = 'empty' | 'error' | 'loading' | 'ready' | 'restricted';
@@ -15,11 +17,15 @@ export interface PatientCredentials {
 
 export type AuthenticationResult =
   | {
-      readonly authenticated: false;
+      readonly kind: 'rejected';
       readonly message: string;
     }
   | {
-      readonly authenticated: true;
+      readonly kind: 'mfa-required';
+      readonly challenge: MfaChallengeView;
+    }
+  | {
+      readonly kind: 'authenticated';
       readonly session: PatientSession;
     };
 

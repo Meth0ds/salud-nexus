@@ -1,4 +1,9 @@
 import { Service } from '@angular/core';
+import type {
+  MfaStatusView,
+  RecoveryCodesView,
+  TotpEnrollmentView,
+} from 'auth';
 
 import {
   ACCESS_FIXTURES,
@@ -27,6 +32,10 @@ import type { PatientRepository } from './patient-repository';
 const DEMO_EMAIL = 'laura.demo@saludnexus.test';
 const DEMO_ACCESS_CODE = 'NEXUS-2026';
 const GENERIC_AUTHENTICATION_ERROR = 'No hemos podido verificar los datos de acceso.';
+const DEMO_REQUEST_ID = '019b1234-5678-7abc-8def-1234567890ae';
+const DEMO_TOTP_CODE = '123456';
+const DEMO_TOTP_QR_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" fill="#fff"/><path d="M12 12h32v32H12zM76 12h32v32H76zM12 76h32v32H12zM56 56h12v12H56zM76 76h12v12H76zM96 56h12v12H96z" fill="#082a50"/></svg>';
 
 const SLOT_DETAILS: Readonly<
   Record<string, Pick<Appointment, 'centre' | 'dateIso' | 'dateLabel' | 'room' | 'timeLabel'>>
@@ -163,6 +172,8 @@ export class InMemoryPatientRepository implements PatientRepository {
     string,
     { readonly medicationId: string; readonly renewal: MedicationRenewalResult }
   >();
+  private demoMfaState: 'active' | 'disabled' | 'pending' = 'disabled';
+  private demoQrDisclosureAvailable = false;
 
   authenticate(credentials: PatientCredentials): Promise<AuthenticationResult> {
     const emailMatches = credentials.email.trim().toLowerCase() === DEMO_EMAIL;
@@ -170,18 +181,74 @@ export class InMemoryPatientRepository implements PatientRepository {
 
     if (!emailMatches || !codeMatches) {
       return Promise.resolve({
-        authenticated: false,
+        kind: 'rejected',
         message: GENERIC_AUTHENTICATION_ERROR,
       });
     }
 
     return Promise.resolve({
-      authenticated: true,
+      kind: 'authenticated',
       session: {
         displayName: 'Laura Martín',
         initials: 'LM',
         runtime: 'demo',
       },
+    });
+  }
+
+  verifyMfaChallenge(): Promise<AuthenticationResult> {
+    return Promise.resolve({
+      kind: 'rejected',
+      message: GENERIC_AUTHENTICATION_ERROR,
+    });
+  }
+
+  getMfaStatus(): Promise<MfaStatusView> {
+    const enabled = this.demoMfaState === 'active';
+
+    return Promise.resolve({
+      enabled,
+      method: this.demoMfaState === 'disabled' ? null : 'totp',
+      status: this.demoMfaState === 'disabled' ? null : this.demoMfaState,
+      confirmedAt: enabled ? new Date().toISOString() : null,
+      recoveryCodesRemaining: enabled ? 10 : 0,
+      requestId: DEMO_REQUEST_ID,
+    });
+  }
+
+  beginTotpEnrollment(): Promise<TotpEnrollmentView> {
+    this.demoMfaState = 'pending';
+    this.demoQrDisclosureAvailable = true;
+
+    return Promise.resolve({
+      method: 'totp',
+      status: 'pending',
+      expiresAt: new Date(Date.now() + 5 * 60_000).toISOString(),
+      qrDisclosureRequired: true,
+      requestId: DEMO_REQUEST_ID,
+    });
+  }
+
+  discloseTotpEnrollmentQr(): Promise<string> {
+    if (this.demoMfaState !== 'pending' || !this.demoQrDisclosureAvailable) {
+      return Promise.reject(new Error('The synthetic QR disclosure is available for one use.'));
+    }
+
+    this.demoQrDisclosureAvailable = false;
+
+    return Promise.resolve(DEMO_TOTP_QR_SVG);
+  }
+
+  confirmTotpEnrollment(code: string): Promise<RecoveryCodesView> {
+    if (this.demoMfaState !== 'pending' || code !== DEMO_TOTP_CODE) {
+      return Promise.reject(new Error('Expected the documented synthetic authentication code.'));
+    }
+
+    this.demoMfaState = 'active';
+
+    return Promise.resolve({
+      codes: '23456789AB'.split('').map((suffix) => `234567-89ABCD-EFGHJK-MNPQR${suffix}`),
+      requestId: DEMO_REQUEST_ID,
     });
   }
 
@@ -297,6 +364,8 @@ export class InMemoryPatientRepository implements PatientRepository {
     this.runtimeMedication.splice(0);
     this.medicationDeclarationsByRequest.clear();
     this.medicationRenewalsByRequest.clear();
+    this.demoMfaState = 'disabled';
+    this.demoQrDisclosureAvailable = false;
   }
 
   declareMedication(request: MedicationDeclarationRequest): Promise<MedicationItem> {

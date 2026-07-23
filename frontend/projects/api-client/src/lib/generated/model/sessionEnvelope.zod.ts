@@ -6,8 +6,8 @@
  * OpenAPI spec version: 1.0.0
  */
 import { z as zod } from 'zod';
-import { DateTime } from './dateTime.zod';
 import { RequestMeta } from './requestMeta.zod';
+import { SessionAuthentication } from './sessionAuthentication.zod';
 import { UuidV7 } from './uuidV7.zod';
 
 export const sessionEnvelopeDataIdentityDisplayNameMax = 160;
@@ -21,11 +21,7 @@ export const SessionEnvelope = zod.strictObject({
       id: UuidV7,
       display_name: zod.string().min(1).max(sessionEnvelopeDataIdentityDisplayNameMax),
     }),
-    authentication: zod.strictObject({
-      method: zod.literal('password'),
-      level: zod.literal('aal1'),
-      authenticated_at: DateTime,
-    }),
+    authentication: SessionAuthentication,
     capabilities: zod
       .array(zod.enum(['session:read', 'session:logout']))
       .min(sessionEnvelopeDataCapabilitiesMin),

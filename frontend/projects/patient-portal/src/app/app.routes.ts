@@ -1,6 +1,6 @@
 import type { Routes } from '@angular/router';
 
-import { anonymousOnlyGuard, authenticatedGuard } from './core/auth.guard';
+import { anonymousOnlyGuard, authenticatedGuard, mfaChallengeGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   {
@@ -8,6 +8,13 @@ export const routes: Routes = [
     title: 'Acceso · Salud Nexus',
     canActivate: [anonymousOnlyGuard],
     loadComponent: () => import('./features/auth/login').then((module) => module.Login),
+  },
+  {
+    path: 'verificar-segundo-factor',
+    title: 'Segundo factor · Salud Nexus',
+    canActivate: [mfaChallengeGuard],
+    loadComponent: () =>
+      import('./features/auth/mfa-challenge').then((module) => module.MfaChallenge),
   },
   {
     path: '',
@@ -44,6 +51,12 @@ export const routes: Routes = [
         path: 'privacidad',
         title: 'Privacidad y accesos · Portal del paciente',
         loadComponent: () => import('./features/privacy/privacy').then((module) => module.Privacy),
+      },
+      {
+        path: 'seguridad',
+        title: 'Seguridad de la cuenta · Portal del paciente',
+        loadComponent: () =>
+          import('./features/security/account-security').then((module) => module.AccountSecurity),
       },
       {
         path: '**',

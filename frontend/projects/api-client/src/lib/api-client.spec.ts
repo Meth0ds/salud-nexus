@@ -73,6 +73,45 @@ describe('ApiClient', () => {
     });
   });
 
+  it('retrieves a bounded text representation with an explicit media type', async () => {
+    const response = firstValueFrom(
+      client.postText('/auth/mfa/totp/enrollment-qr-disclosures', 'image/svg+xml', 4_096),
+    );
+    const request = httpTesting.expectOne('/api/v1/auth/mfa/totp/enrollment-qr-disclosures');
+
+    expect(request.request.method).toBe('POST');
+    expect(request.request.responseType).toBe('text');
+    expect(request.request.withCredentials).toBe(true);
+    expect(request.request.headers.get('Accept')).toBe('image/svg+xml');
+    request.flush('<svg xmlns="http://www.w3.org/2000/svg"></svg>', {
+      headers: { 'Content-Type': 'image/svg+xml; charset=UTF-8' },
+    });
+
+    await expect(response).resolves.toBe('<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+  });
+
+  it('rejects a text representation with the wrong media type or excessive size', async () => {
+    const wrongMediaType = firstValueFrom(
+      client.postText('/auth/mfa/totp/enrollment-qr-disclosures', 'image/svg+xml', 4_096),
+    );
+    httpTesting
+      .expectOne('/api/v1/auth/mfa/totp/enrollment-qr-disclosures')
+      .flush('<svg></svg>', { headers: { 'Content-Type': 'text/html' } });
+
+    await expect(wrongMediaType).rejects.toBeInstanceOf(ApiContractError);
+
+    const oversized = firstValueFrom(
+      client.postText('/auth/mfa/totp/enrollment-qr-disclosures', 'image/svg+xml', 16),
+    );
+    httpTesting
+      .expectOne('/api/v1/auth/mfa/totp/enrollment-qr-disclosures')
+      .flush('<svg>representation-too-large</svg>', {
+        headers: { 'Content-Type': 'image/svg+xml' },
+      });
+
+    await expect(oversized).rejects.toBeInstanceOf(ApiContractError);
+  });
+
   it('sends a strong validator and returns validated mutation metadata', async () => {
     const response = firstValueFrom(
       client.postResponse('/appointments/example/cancellations', {}, personSchema, {

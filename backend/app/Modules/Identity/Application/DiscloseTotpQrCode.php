@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application;
 
+use App\Modules\Identity\Domain\IdentitySecurityEventType;
 use App\Modules\Identity\Domain\MfaMethodStatus;
 use App\Modules\Identity\Domain\MfaMethodType;
+use App\Modules\Identity\Domain\SecurityEventOutcome;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityAccount;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityMfaMethod;
 use Carbon\CarbonImmutable;
@@ -25,14 +27,15 @@ final readonly class DiscloseTotpQrCode
         private TotpAuthenticator $authenticator,
         private TotpQrCodeRenderer $renderer,
         private ClockInterface $clock,
+        private IdentitySecurityEventWriter $securityEvents,
     ) {}
 
     /**
      * Render and consume the pending QR disclosure for the owning identity.
      */
-    public function handle(IdentityAccount $account): string
+    public function handle(IdentityAccount $account, string $requestPublicId): string
     {
-        return DB::transaction(function () use ($account): string {
+        return DB::transaction(function () use ($account, $requestPublicId): string {
             $method = IdentityMfaMethod::query()
                 ->where('identity_account_id', $account->id)
                 ->where('type', MfaMethodType::Totp->value)
@@ -55,6 +58,17 @@ final readonly class DiscloseTotpQrCode
             );
             $method->secret_revealed_at = $now;
             $method->save();
+            $this->securityEvents->write(
+                account: $account,
+                type: IdentitySecurityEventType::MfaQrDisclosed,
+                outcome: SecurityEventOutcome::Succeeded,
+                authenticationLevel: 1,
+                requestPublicId: $requestPublicId,
+                metadata: [
+                    'factor' => 'totp',
+                    'intent' => 'enrollment',
+                ],
+            );
 
             return $svg;
         }, 3);

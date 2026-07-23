@@ -119,7 +119,7 @@
           "Identidad"
         ],
         "summary": "Iniciar una sesión de paciente",
-        "description": "Valida credenciales, rota el identificador de sesión y establece una sesión Laravel Sanctum de primera parte. Las respuestas de credenciales inválidas son deliberadamente neutras.",
+        "description": "Valida las credenciales sin autenticar todavía al guard cuando existe un segundo factor activo. Devuelve 204 para una sesión AAL1 o 202 con un reto MFA opaco y ligado a la sesión. Las respuestas de credenciales inválidas son deliberadamente neutras.",
         "operationId": "loginWithPassword",
         "security": [
           {
@@ -137,11 +137,91 @@
           }
         },
         "responses": {
-          "204": {
-            "description": "Sesión autenticada; no hay cuerpo de respuesta.",
+          "202": {
+            "description": "La contraseña es válida y debe completarse el reto MFA ligado a esta sesión antes de autenticar al usuario.",
             "headers": {
               "Set-Cookie": {
                 "$ref": "#/components/headers/SetCookie"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaChallengeEnvelope"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "Sesión AAL1 autenticada; no hay cuerpo de respuesta.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/mfa/challenge-verifications": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Verificar un reto MFA",
+        "description": "Consume un TOTP o código de recuperación válido y ligado al reto opaco de la sesión. Completa un inicio de sesión o eleva una sesión existente a AAL2 sin revelar qué parte de una verificación falló.",
+        "operationId": "verifyMfaChallenge",
+        "security": [
+          {
+            "xsrfHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaChallengeVerificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Reto consumido y sesión establecida o elevada a AAL2; no hay cuerpo de respuesta.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
               },
               "X-Request-ID": {
                 "$ref": "#/components/headers/XRequestId"
@@ -217,6 +297,264 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SessionEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/mfa": {
+      "get": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Consultar el estado MFA",
+        "description": "Devuelve solamente el estado operativo del método TOTP y el número de códigos de recuperación disponibles. Nunca devuelve semillas, códigos ni hashes.",
+        "operationId": "getMfaStatus",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado MFA mínimo de la identidad autenticada.",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaStatusEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/mfa/step-up-challenges": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Solicitar una elevación a AAL2",
+        "description": "Crea un reto MFA opaco, ligado a la sesión autenticada y a una finalidad sensible incluida en una lista permitida por el servidor.",
+        "operationId": "createMfaStepUpChallenge",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MfaStepUpChallengeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reto de elevación ligado a la finalidad solicitada.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MfaChallengeEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/mfa/totp/enrollments": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Iniciar el alta de TOTP",
+        "description": "Crea o rota un alta TOTP pendiente para una sesión con contraseña reciente. La semilla no se incluye en esta respuesta.",
+        "operationId": "createTotpEnrollment",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Alta pendiente creada; el QR debe solicitarse mediante el comando de revelación de un solo uso.",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotpEnrollmentEnvelope"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/mfa/totp/enrollment-qr-disclosures": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Revelar el QR de alta TOTP",
+        "description": "Devuelve una única vez un SVG sin scripts que contiene la URI de aprovisionamiento. Requiere sesión, contraseña reciente y CSRF; la respuesta no puede almacenarse en caché.",
+        "operationId": "discloseTotpEnrollmentQr",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "QR de aprovisionamiento consumido y devuelto como SVG.",
+            "headers": {
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              },
+              "Content-Disposition": {
+                "$ref": "#/components/headers/InlineQrDisposition"
+              },
+              "X-Content-Type-Options": {
+                "$ref": "#/components/headers/NoSniff"
+              }
+            },
+            "content": {
+              "image/svg+xml": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "contentMediaType": "image/svg+xml"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "4XX": {
+            "$ref": "#/components/responses/Problem"
+          }
+        }
+      }
+    },
+    "/auth/mfa/totp/enrollment-confirmations": {
+      "post": {
+        "tags": [
+          "Identidad"
+        ],
+        "summary": "Confirmar el alta de TOTP",
+        "description": "Verifica el primer TOTP, activa el método, rota la sesión a AAL2 y devuelve una sola vez el nuevo conjunto de códigos de recuperación.",
+        "operationId": "confirmTotpEnrollment",
+        "security": [
+          {
+            "sessionCookie": [],
+            "xsrfHeader": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TotpEnrollmentConfirmationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Método TOTP activado y códigos de recuperación revelados una sola vez.",
+            "headers": {
+              "Set-Cookie": {
+                "$ref": "#/components/headers/SetCookie"
+              },
+              "Cache-Control": {
+                "$ref": "#/components/headers/NoStoreCacheControl"
+              },
+              "Pragma": {
+                "$ref": "#/components/headers/NoCachePragma"
+              },
+              "X-Request-ID": {
+                "$ref": "#/components/headers/XRequestId"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesEnvelope"
                 }
               }
             }
@@ -1239,6 +1577,13 @@
           "type": "string",
           "const": "nosniff"
         }
+      },
+      "InlineQrDisposition": {
+        "description": "Presenta el QR TOTP en línea con un nombre genérico que no contiene datos de identidad.",
+        "schema": {
+          "type": "string",
+          "const": "inline; filename=\"totp-enrollment.svg\""
+        }
       }
     },
     "responses": {
@@ -1570,26 +1915,7 @@
                 }
               },
               "authentication": {
-                "type": "object",
-                "additionalProperties": false,
-                "required": [
-                  "method",
-                  "level",
-                  "authenticated_at"
-                ],
-                "properties": {
-                  "method": {
-                    "type": "string",
-                    "const": "password"
-                  },
-                  "level": {
-                    "type": "string",
-                    "const": "aal1"
-                  },
-                  "authenticated_at": {
-                    "$ref": "#/components/schemas/DateTime"
-                  }
-                }
+                "$ref": "#/components/schemas/SessionAuthentication"
               },
               "capabilities": {
                 "type": "array",
@@ -2406,6 +2732,428 @@
             "$ref": "#/components/schemas/RequestMeta"
           }
         }
+      },
+      "MfaChallengeIntent": {
+        "type": "string",
+        "enum": [
+          "login",
+          "step_up"
+        ]
+      },
+      "MfaVerificationMethod": {
+        "type": "string",
+        "enum": [
+          "totp",
+          "recovery"
+        ]
+      },
+      "MfaStepUpPurpose": {
+        "type": "string",
+        "enum": [
+          "account_security_change",
+          "clinical_document_download",
+          "patient_data_export",
+          "staff_access_change"
+        ]
+      },
+      "MfaMethodStatus": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "active",
+          "disabled"
+        ]
+      },
+      "MfaChallenge": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "challenge_id",
+          "intent",
+          "purpose",
+          "methods",
+          "expires_at",
+          "attempts_remaining"
+        ],
+        "properties": {
+          "challenge_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "intent": {
+            "$ref": "#/components/schemas/MfaChallengeIntent"
+          },
+          "purpose": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MfaStepUpPurpose"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MfaVerificationMethod"
+            },
+            "minItems": 1,
+            "maxItems": 2,
+            "uniqueItems": true
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "attempts_remaining": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          }
+        }
+      },
+      "MfaChallengeEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MfaChallenge"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "TotpChallengeVerificationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "challenge_id",
+          "method",
+          "code"
+        ],
+        "properties": {
+          "challenge_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "method": {
+            "type": "string",
+            "const": "totp"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "minLength": 6,
+            "maxLength": 6,
+            "writeOnly": true
+          }
+        }
+      },
+      "RecoveryChallengeVerificationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "challenge_id",
+          "method",
+          "code"
+        ],
+        "properties": {
+          "challenge_id": {
+            "$ref": "#/components/schemas/UuidV7"
+          },
+          "method": {
+            "type": "string",
+            "const": "recovery"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9\\s-]{23,64}$",
+            "minLength": 23,
+            "maxLength": 64,
+            "writeOnly": true
+          }
+        }
+      },
+      "MfaChallengeVerificationRequest": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/TotpChallengeVerificationRequest"
+          },
+          {
+            "$ref": "#/components/schemas/RecoveryChallengeVerificationRequest"
+          }
+        ]
+      },
+      "MfaStepUpChallengeRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "purpose"
+        ],
+        "properties": {
+          "purpose": {
+            "$ref": "#/components/schemas/MfaStepUpPurpose"
+          }
+        }
+      },
+      "MfaStatus": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "enabled",
+          "method",
+          "status",
+          "confirmed_at",
+          "recovery_codes_remaining"
+        ],
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "method": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "totp",
+              null
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MfaMethodStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confirmed_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DateTime"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "recovery_codes_remaining": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          }
+        }
+      },
+      "MfaStatusEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MfaStatus"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "TotpEnrollment": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "status",
+          "expires_at",
+          "qr_disclosure_required"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "totp"
+          },
+          "status": {
+            "type": "string",
+            "const": "pending"
+          },
+          "expires_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "qr_disclosure_required": {
+            "type": "boolean",
+            "const": true
+          }
+        }
+      },
+      "TotpEnrollmentEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TotpEnrollment"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "TotpEnrollmentConfirmationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "minLength": 6,
+            "maxLength": 6,
+            "writeOnly": true
+          }
+        }
+      },
+      "RecoveryCode": {
+        "type": "string",
+        "pattern": "^[23456789ABCDEFGHJKMNPQRSTVWXYZ-]{26,37}$",
+        "minLength": 26,
+        "maxLength": 37,
+        "readOnly": true
+      },
+      "RecoveryCodes": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "status",
+          "recovery_codes"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "totp"
+          },
+          "status": {
+            "type": "string",
+            "const": "active"
+          },
+          "recovery_codes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecoveryCode"
+            },
+            "minItems": 8,
+            "maxItems": 20,
+            "uniqueItems": true
+          }
+        }
+      },
+      "RecoveryCodesEnvelope": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RecoveryCodes"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RequestMeta"
+          }
+        }
+      },
+      "PasswordSessionAuthentication": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "level",
+          "authenticated_at"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "password"
+          },
+          "level": {
+            "type": "string",
+            "const": "aal1"
+          },
+          "authenticated_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "TotpSessionAuthentication": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "level",
+          "authenticated_at"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "password+totp"
+          },
+          "level": {
+            "type": "string",
+            "const": "aal2"
+          },
+          "authenticated_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "RecoverySessionAuthentication": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "method",
+          "level",
+          "authenticated_at"
+        ],
+        "properties": {
+          "method": {
+            "type": "string",
+            "const": "password+recovery"
+          },
+          "level": {
+            "type": "string",
+            "const": "aal2"
+          },
+          "authenticated_at": {
+            "$ref": "#/components/schemas/DateTime"
+          }
+        }
+      },
+      "SessionAuthentication": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/PasswordSessionAuthentication"
+          },
+          {
+            "$ref": "#/components/schemas/TotpSessionAuthentication"
+          },
+          {
+            "$ref": "#/components/schemas/RecoverySessionAuthentication"
+          }
+        ]
       }
     }
   }

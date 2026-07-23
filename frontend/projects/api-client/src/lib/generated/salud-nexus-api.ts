@@ -23,10 +23,14 @@ import {
   MedicationEnvelope,
   MedicationListEnvelope,
   MedicationRenewalEnvelope,
+  MfaChallengeEnvelope,
+  MfaStatusEnvelope,
   PatientDashboardEnvelope,
   PatientProfileEnvelope,
   ReadinessEnvelope,
+  RecoveryCodesEnvelope,
   SessionEnvelope,
+  TotpEnrollmentEnvelope,
 } from './model';
 import type {
   ApiIndexEnvelopeOutput,
@@ -47,14 +51,21 @@ import type {
   MedicationEnvelopeOutput,
   MedicationListEnvelopeOutput,
   MedicationRenewalEnvelopeOutput,
+  MfaChallengeEnvelopeOutput,
+  MfaChallengeVerificationRequest,
+  MfaStatusEnvelopeOutput,
+  MfaStepUpChallengeRequest,
   PasswordLoginRequest,
   PatientDashboardEnvelopeOutput,
   PatientProfileEnvelopeOutput,
   ReadinessEnvelopeOutput,
+  RecoveryCodesEnvelopeOutput,
   RequestPatientMedicationRenewalHeaders,
   RescheduleAppointmentRequest,
   ReschedulePatientAppointmentHeaders,
   SessionEnvelopeOutput,
+  TotpEnrollmentConfirmationRequest,
+  TotpEnrollmentEnvelopeOutput,
 } from './model';
 
 import { map } from 'rxjs';
@@ -239,22 +250,22 @@ export class SaludNexusAPIDelCentroSanitarioService {
   }
 
   /**
-   * Valida credenciales, rota el identificador de sesión y establece una sesión Laravel Sanctum de primera parte. Las respuestas de credenciales inválidas son deliberadamente neutras.
+   * Valida las credenciales sin autenticar todavía al guard cuando existe un segundo factor activo. Devuelve 204 para una sesión AAL1 o 202 con un reto MFA opaco y ligado a la sesión. Las respuestas de credenciales inválidas son deliberadamente neutras.
    * @summary Iniciar una sesión de paciente
    */
-  loginWithPassword<TData = void>(
+  loginWithPassword<TData = MfaChallengeEnvelope | void>(
     passwordLoginRequest: PasswordLoginRequest,
     options?: HttpClientBodyOptions,
   ): Observable<TData>;
-  loginWithPassword<TData = void>(
+  loginWithPassword<TData = MfaChallengeEnvelope | void>(
     passwordLoginRequest: PasswordLoginRequest,
     options?: HttpClientEventOptions,
   ): Observable<HttpEvent<TData>>;
-  loginWithPassword<TData = void>(
+  loginWithPassword<TData = MfaChallengeEnvelope | void>(
     passwordLoginRequest: PasswordLoginRequest,
     options?: HttpClientResponseOptions,
   ): Observable<AngularHttpResponse<TData>>;
-  loginWithPassword<TData = void>(
+  loginWithPassword<TData = MfaChallengeEnvelope | void>(
     passwordLoginRequest: PasswordLoginRequest,
     options?: HttpClientObserveOptions,
   ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
@@ -276,6 +287,58 @@ export class SaludNexusAPIDelCentroSanitarioService {
       ...(options as Omit<NonNullable<typeof options>, 'observe'>),
       observe: 'body',
     });
+  }
+
+  /**
+   * Consume un TOTP o código de recuperación válido y ligado al reto opaco de la sesión. Completa un inicio de sesión o eleva una sesión existente a AAL2 sin revelar qué parte de una verificación falló.
+   * @summary Verificar un reto MFA
+   */
+  verifyMfaChallenge<TData = void>(
+    mfaChallengeVerificationRequest: MfaChallengeVerificationRequest,
+    options?: HttpClientBodyOptions,
+  ): Observable<TData>;
+  verifyMfaChallenge<TData = void>(
+    mfaChallengeVerificationRequest: MfaChallengeVerificationRequest,
+    options?: HttpClientEventOptions,
+  ): Observable<HttpEvent<TData>>;
+  verifyMfaChallenge<TData = void>(
+    mfaChallengeVerificationRequest: MfaChallengeVerificationRequest,
+    options?: HttpClientResponseOptions,
+  ): Observable<AngularHttpResponse<TData>>;
+  verifyMfaChallenge<TData = void>(
+    mfaChallengeVerificationRequest: MfaChallengeVerificationRequest,
+    options?: HttpClientObserveOptions,
+  ): Observable<TData | HttpEvent<TData> | AngularHttpResponse<TData>> {
+    if (options?.observe === 'events') {
+      return this.http.post<TData>(
+        `/api/v1/auth/mfa/challenge-verifications`,
+        mfaChallengeVerificationRequest,
+        {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'events',
+        },
+      );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post<TData>(
+        `/api/v1/auth/mfa/challenge-verifications`,
+        mfaChallengeVerificationRequest,
+        {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'response',
+        },
+      );
+    }
+
+    return this.http.post<TData>(
+      `/api/v1/auth/mfa/challenge-verifications`,
+      mfaChallengeVerificationRequest,
+      {
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      },
+    );
   }
 
   /**
@@ -358,6 +421,281 @@ export class SaludNexusAPIDelCentroSanitarioService {
         observe: 'body',
       })
       .pipe(map((data) => SessionEnvelope.parse(data)));
+  }
+
+  /**
+   * Devuelve solamente el estado operativo del método TOTP y el número de códigos de recuperación disponibles. Nunca devuelve semillas, códigos ni hashes.
+   * @summary Consultar el estado MFA
+   */
+  getMfaStatus(options?: HttpClientBodyOptions): Observable<MfaStatusEnvelopeOutput>;
+  getMfaStatus(options?: HttpClientEventOptions): Observable<HttpEvent<MfaStatusEnvelopeOutput>>;
+  getMfaStatus(
+    options?: HttpClientResponseOptions,
+  ): Observable<AngularHttpResponse<MfaStatusEnvelopeOutput>>;
+  getMfaStatus(
+    options?: HttpClientObserveOptions,
+  ): Observable<
+    | MfaStatusEnvelopeOutput
+    | HttpEvent<MfaStatusEnvelopeOutput>
+    | AngularHttpResponse<MfaStatusEnvelopeOutput>
+  > {
+    if (options?.observe === 'events') {
+      return this.http
+        .get<MfaStatusEnvelopeOutput>(`/api/v1/auth/mfa`, {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'events',
+        })
+        .pipe(
+          map((event) =>
+            event instanceof AngularHttpResponse
+              ? event.clone({ body: MfaStatusEnvelope.parse(event.body) })
+              : event,
+          ),
+        );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http
+        .get<MfaStatusEnvelopeOutput>(`/api/v1/auth/mfa`, {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'response',
+        })
+        .pipe(map((response) => response.clone({ body: MfaStatusEnvelope.parse(response.body) })));
+    }
+
+    return this.http
+      .get<MfaStatusEnvelopeOutput>(`/api/v1/auth/mfa`, {
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      })
+      .pipe(map((data) => MfaStatusEnvelope.parse(data)));
+  }
+
+  /**
+   * Crea un reto MFA opaco, ligado a la sesión autenticada y a una finalidad sensible incluida en una lista permitida por el servidor.
+   * @summary Solicitar una elevación a AAL2
+   */
+  createMfaStepUpChallenge(
+    mfaStepUpChallengeRequest: MfaStepUpChallengeRequest,
+    options?: HttpClientBodyOptions,
+  ): Observable<MfaChallengeEnvelopeOutput>;
+  createMfaStepUpChallenge(
+    mfaStepUpChallengeRequest: MfaStepUpChallengeRequest,
+    options?: HttpClientEventOptions,
+  ): Observable<HttpEvent<MfaChallengeEnvelopeOutput>>;
+  createMfaStepUpChallenge(
+    mfaStepUpChallengeRequest: MfaStepUpChallengeRequest,
+    options?: HttpClientResponseOptions,
+  ): Observable<AngularHttpResponse<MfaChallengeEnvelopeOutput>>;
+  createMfaStepUpChallenge(
+    mfaStepUpChallengeRequest: MfaStepUpChallengeRequest,
+    options?: HttpClientObserveOptions,
+  ): Observable<
+    | MfaChallengeEnvelopeOutput
+    | HttpEvent<MfaChallengeEnvelopeOutput>
+    | AngularHttpResponse<MfaChallengeEnvelopeOutput>
+  > {
+    if (options?.observe === 'events') {
+      return this.http
+        .post<MfaChallengeEnvelopeOutput>(
+          `/api/v1/auth/mfa/step-up-challenges`,
+          mfaStepUpChallengeRequest,
+          {
+            ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+            observe: 'events',
+          },
+        )
+        .pipe(
+          map((event) =>
+            event instanceof AngularHttpResponse
+              ? event.clone({ body: MfaChallengeEnvelope.parse(event.body) })
+              : event,
+          ),
+        );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http
+        .post<MfaChallengeEnvelopeOutput>(
+          `/api/v1/auth/mfa/step-up-challenges`,
+          mfaStepUpChallengeRequest,
+          {
+            ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+            observe: 'response',
+          },
+        )
+        .pipe(
+          map((response) => response.clone({ body: MfaChallengeEnvelope.parse(response.body) })),
+        );
+    }
+
+    return this.http
+      .post<MfaChallengeEnvelopeOutput>(
+        `/api/v1/auth/mfa/step-up-challenges`,
+        mfaStepUpChallengeRequest,
+        {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'body',
+        },
+      )
+      .pipe(map((data) => MfaChallengeEnvelope.parse(data)));
+  }
+
+  /**
+   * Crea o rota un alta TOTP pendiente para una sesión con contraseña reciente. La semilla no se incluye en esta respuesta.
+   * @summary Iniciar el alta de TOTP
+   */
+  createTotpEnrollment(options?: HttpClientBodyOptions): Observable<TotpEnrollmentEnvelopeOutput>;
+  createTotpEnrollment(
+    options?: HttpClientEventOptions,
+  ): Observable<HttpEvent<TotpEnrollmentEnvelopeOutput>>;
+  createTotpEnrollment(
+    options?: HttpClientResponseOptions,
+  ): Observable<AngularHttpResponse<TotpEnrollmentEnvelopeOutput>>;
+  createTotpEnrollment(
+    options?: HttpClientObserveOptions,
+  ): Observable<
+    | TotpEnrollmentEnvelopeOutput
+    | HttpEvent<TotpEnrollmentEnvelopeOutput>
+    | AngularHttpResponse<TotpEnrollmentEnvelopeOutput>
+  > {
+    if (options?.observe === 'events') {
+      return this.http
+        .post<TotpEnrollmentEnvelopeOutput>(`/api/v1/auth/mfa/totp/enrollments`, undefined, {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'events',
+        })
+        .pipe(
+          map((event) =>
+            event instanceof AngularHttpResponse
+              ? event.clone({ body: TotpEnrollmentEnvelope.parse(event.body) })
+              : event,
+          ),
+        );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http
+        .post<TotpEnrollmentEnvelopeOutput>(`/api/v1/auth/mfa/totp/enrollments`, undefined, {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'response',
+        })
+        .pipe(
+          map((response) => response.clone({ body: TotpEnrollmentEnvelope.parse(response.body) })),
+        );
+    }
+
+    return this.http
+      .post<TotpEnrollmentEnvelopeOutput>(`/api/v1/auth/mfa/totp/enrollments`, undefined, {
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'body',
+      })
+      .pipe(map((data) => TotpEnrollmentEnvelope.parse(data)));
+  }
+
+  /**
+   * Devuelve una única vez un SVG sin scripts que contiene la URI de aprovisionamiento. Requiere sesión, contraseña reciente y CSRF; la respuesta no puede almacenarse en caché.
+   * @summary Revelar el QR de alta TOTP
+   */
+  discloseTotpEnrollmentQr(options?: HttpClientBodyOptions): Observable<Blob>;
+  discloseTotpEnrollmentQr(options?: HttpClientEventOptions): Observable<HttpEvent<Blob>>;
+  discloseTotpEnrollmentQr(
+    options?: HttpClientResponseOptions,
+  ): Observable<AngularHttpResponse<Blob>>;
+  discloseTotpEnrollmentQr(
+    options?: HttpClientObserveOptions,
+  ): Observable<Blob | HttpEvent<Blob> | AngularHttpResponse<Blob>> {
+    if (options?.observe === 'events') {
+      return this.http.post(`/api/v1/auth/mfa/totp/enrollment-qr-disclosures`, undefined, {
+        responseType: 'blob',
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'events',
+      }) as Observable<HttpEvent<Blob>>;
+    }
+
+    if (options?.observe === 'response') {
+      return this.http.post(`/api/v1/auth/mfa/totp/enrollment-qr-disclosures`, undefined, {
+        responseType: 'blob',
+        ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+        observe: 'response',
+      }) as Observable<AngularHttpResponse<Blob>>;
+    }
+
+    return this.http.post(`/api/v1/auth/mfa/totp/enrollment-qr-disclosures`, undefined, {
+      responseType: 'blob',
+      ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+      observe: 'body',
+    }) as Observable<Blob>;
+  }
+
+  /**
+   * Verifica el primer TOTP, activa el método, rota la sesión a AAL2 y devuelve una sola vez el nuevo conjunto de códigos de recuperación.
+   * @summary Confirmar el alta de TOTP
+   */
+  confirmTotpEnrollment(
+    totpEnrollmentConfirmationRequest: TotpEnrollmentConfirmationRequest,
+    options?: HttpClientBodyOptions,
+  ): Observable<RecoveryCodesEnvelopeOutput>;
+  confirmTotpEnrollment(
+    totpEnrollmentConfirmationRequest: TotpEnrollmentConfirmationRequest,
+    options?: HttpClientEventOptions,
+  ): Observable<HttpEvent<RecoveryCodesEnvelopeOutput>>;
+  confirmTotpEnrollment(
+    totpEnrollmentConfirmationRequest: TotpEnrollmentConfirmationRequest,
+    options?: HttpClientResponseOptions,
+  ): Observable<AngularHttpResponse<RecoveryCodesEnvelopeOutput>>;
+  confirmTotpEnrollment(
+    totpEnrollmentConfirmationRequest: TotpEnrollmentConfirmationRequest,
+    options?: HttpClientObserveOptions,
+  ): Observable<
+    | RecoveryCodesEnvelopeOutput
+    | HttpEvent<RecoveryCodesEnvelopeOutput>
+    | AngularHttpResponse<RecoveryCodesEnvelopeOutput>
+  > {
+    if (options?.observe === 'events') {
+      return this.http
+        .post<RecoveryCodesEnvelopeOutput>(
+          `/api/v1/auth/mfa/totp/enrollment-confirmations`,
+          totpEnrollmentConfirmationRequest,
+          {
+            ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+            observe: 'events',
+          },
+        )
+        .pipe(
+          map((event) =>
+            event instanceof AngularHttpResponse
+              ? event.clone({ body: RecoveryCodesEnvelope.parse(event.body) })
+              : event,
+          ),
+        );
+    }
+
+    if (options?.observe === 'response') {
+      return this.http
+        .post<RecoveryCodesEnvelopeOutput>(
+          `/api/v1/auth/mfa/totp/enrollment-confirmations`,
+          totpEnrollmentConfirmationRequest,
+          {
+            ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+            observe: 'response',
+          },
+        )
+        .pipe(
+          map((response) => response.clone({ body: RecoveryCodesEnvelope.parse(response.body) })),
+        );
+    }
+
+    return this.http
+      .post<RecoveryCodesEnvelopeOutput>(
+        `/api/v1/auth/mfa/totp/enrollment-confirmations`,
+        totpEnrollmentConfirmationRequest,
+        {
+          ...(options as Omit<NonNullable<typeof options>, 'observe'>),
+          observe: 'body',
+        },
+      )
+      .pipe(map((data) => RecoveryCodesEnvelope.parse(data)));
   }
 
   /**

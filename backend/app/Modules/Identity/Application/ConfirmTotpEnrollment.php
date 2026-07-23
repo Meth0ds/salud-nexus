@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application;
 
+use App\Http\Middleware\AssignRequestId;
+use App\Modules\Identity\Domain\IdentitySecurityEventType;
 use App\Modules\Identity\Domain\MfaMethodStatus;
 use App\Modules\Identity\Domain\MfaMethodType;
+use App\Modules\Identity\Domain\SecurityEventOutcome;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityAccount;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityMfaMethod;
 use App\Shared\Domain\Identity\PublicIdGenerator;
@@ -30,6 +33,7 @@ final readonly class ConfirmTotpEnrollment
         private RecoveryCodeManager $recoveryCodes,
         private ClockInterface $clock,
         private PublicIdGenerator $publicIds,
+        private IdentitySecurityEventWriter $securityEvents,
     ) {}
 
     /**
@@ -42,7 +46,17 @@ final readonly class ConfirmTotpEnrollment
         IdentityAccount $account,
         #[SensitiveParameter] string $code,
     ): array {
-        $recoveryCodes = DB::transaction(function () use ($account, $code): array {
+        $requestPublicId = $request->attributes->get(AssignRequestId::ATTRIBUTE);
+
+        if (! is_string($requestPublicId)) {
+            throw new \LogicException('TOTP enrollment confirmation requires a request identifier.');
+        }
+
+        $recoveryCodes = DB::transaction(function () use (
+            $account,
+            $code,
+            $requestPublicId,
+        ): array {
             $method = IdentityMfaMethod::query()
                 ->where('identity_account_id', $account->id)
                 ->where('type', MfaMethodType::Totp->value)
@@ -71,7 +85,21 @@ final readonly class ConfirmTotpEnrollment
             $method->enrollment_expires_at = null;
             $method->save();
 
-            return $this->recoveryCodes->generateFor($method);
+            $recoveryCodes = $this->recoveryCodes->generateFor($method);
+            $this->securityEvents->write(
+                account: $account,
+                type: IdentitySecurityEventType::MfaEnrollmentConfirmed,
+                outcome: SecurityEventOutcome::Succeeded,
+                authenticationLevel: 2,
+                requestPublicId: $requestPublicId,
+                metadata: [
+                    'factor' => 'totp',
+                    'intent' => 'enrollment',
+                    'recovery_codes_remaining' => count($recoveryCodes),
+                ],
+            );
+
+            return $recoveryCodes;
         }, 3);
 
         $request->session()->regenerate(true);
@@ -80,6 +108,7 @@ final readonly class ConfirmTotpEnrollment
             BrowserSession::LEVEL => 2,
             BrowserSession::AUTHENTICATED_AT => $this->clock->now()->format(DATE_ATOM),
             BrowserSession::PUBLIC_ID => $this->publicIds->generate()->toString(),
+            BrowserSession::ASSURANCE_SCOPE => 'all',
         ]);
 
         return $recoveryCodes;

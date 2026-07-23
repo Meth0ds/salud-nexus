@@ -104,6 +104,16 @@
           </section>
 
           <aside class="privacy-sidebar">
+            <section aria-labelledby="account-security-title">
+              <span class="sidebar-icon" aria-hidden="true"
+                ><sn-icon name="shield_lock" [size]="24"
+              /></span>
+              <p class="sn-eyebrow">Protección de acceso</p>
+              <h2 id="account-security-title">Segundo factor y recuperación</h2>
+              <p>Configura una aplicación de autenticación y custodia códigos de recuperación.</p>
+              <a matButton="outlined" routerLink="/seguridad">Abrir seguridad de la cuenta</a>
+            </section>
+
             <section aria-labelledby="sessions-title">
               <span class="sidebar-icon" aria-hidden="true"
                 ><sn-icon name="devices" [size]="24"

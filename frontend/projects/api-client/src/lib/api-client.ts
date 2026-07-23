@@ -13,6 +13,7 @@ const IDEMPOTENCY_KEY_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._:-]{15,127}$/;
 const APPOINTMENT_ETAG_PATTERN = /^"v([1-9][0-9]{0,9})"$/;
 const MAX_APPOINTMENT_VERSION = 4_294_967_295;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const MEDIA_TYPE_PATTERN = /^[a-z0-9][a-z0-9!#$&^_.+-]*\/[a-z0-9][a-z0-9!#$&^_.+-]*$/;
 
 export type RuntimeSchemaResult<T> =
   { readonly success: true; readonly data: T } | { readonly success: false };
@@ -152,6 +153,53 @@ export class ApiClient {
     options: ApiMutationOptions = {},
   ): Observable<ApiValidatedResponse<TResponse>> {
     return this.requestResponse('POST', path, body, schema, options);
+  }
+
+  postText(path: string, expectedMediaType: string, maximumBytes: number): Observable<string> {
+    const normalizedMediaType = expectedMediaType.trim().toLowerCase();
+
+    if (!MEDIA_TYPE_PATTERN.test(normalizedMediaType)) {
+      throw new Error('Expected one concrete response media type.');
+    }
+
+    if (!Number.isSafeInteger(maximumBytes) || maximumBytes < 1 || maximumBytes > 1_048_576) {
+      throw new Error('The maximum text response size must be between 1 byte and 1 MiB.');
+    }
+
+    const url = `${this.config.baseUrl}${normalizeEndpointPath(path)}`;
+    const headers = this.headers('POST').set('Accept', normalizedMediaType);
+
+    return this.http
+      .request('POST', url, {
+        body: undefined,
+        headers,
+        timeout: this.config.timeoutMs,
+        transferCache: false,
+        withCredentials: true,
+        observe: 'response',
+        responseType: 'text',
+      })
+      .pipe(
+        map((response) => {
+          const body = response.body;
+          const responseMediaType = response.headers
+            .get('Content-Type')
+            ?.split(';', 1)[0]
+            ?.trim()
+            .toLowerCase();
+
+          if (
+            typeof body !== 'string' ||
+            responseMediaType !== normalizedMediaType ||
+            new TextEncoder().encode(body).byteLength > maximumBytes
+          ) {
+            throw new ApiContractError();
+          }
+
+          return body;
+        }),
+        catchError((error: unknown) => throwError(() => normalizeError(error))),
+      );
   }
 
   put<TResponse, TBody>(

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Identity\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Middleware\AssignRequestId;
 use App\Modules\Identity\Application\DiscloseTotpQrCode;
 use App\Modules\Identity\Application\RequireRecentPasswordSession;
 use App\Modules\Identity\Http\Requests\EmptyMfaRequest;
@@ -24,7 +25,11 @@ final class DiscloseTotpQrCodeController extends Controller
         DiscloseTotpQrCode $discloseQrCode,
     ): Response {
         $account = $assurance->handle($request);
-        $svg = $discloseQrCode->handle($account);
+        $requestPublicId = $request->attributes->get(AssignRequestId::ATTRIBUTE);
+        $svg = $discloseQrCode->handle(
+            $account,
+            is_string($requestPublicId) ? $requestPublicId : '',
+        );
 
         return response($svg, 200, [
             'Content-Type' => 'image/svg+xml; charset=UTF-8',

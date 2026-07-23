@@ -30,8 +30,19 @@ final class OpenApiContractTest extends TestCase
         'get /',
         'get /auth/csrf',
         'post /auth/login',
+        'post /auth/mfa/challenge-verifications',
         'get /health/live',
         'get /health/ready',
+    ];
+
+    /**
+     * Define public session commands that still require CSRF protection.
+     *
+     * @var list<string>
+     */
+    private const XSRF_ONLY_OPERATIONS = [
+        'post /auth/login',
+        'post /auth/mfa/challenge-verifications',
     ];
 
     /**
@@ -109,7 +120,7 @@ final class OpenApiContractTest extends TestCase
             self::assertIsArray($security, $operationKey.' has malformed security requirements.');
 
             if (in_array($operationKey, self::PUBLIC_OPERATIONS, true)) {
-                if ($operationKey === 'post /auth/login') {
+                if (in_array($operationKey, self::XSRF_ONLY_OPERATIONS, true)) {
                     self::assertTrue($this->securityContains($security, 'xsrfHeader'));
                     self::assertFalse($this->securityContains($security, 'sessionCookie'));
                 } else {

@@ -10,6 +10,7 @@ const IDS = {
   appointment: '019b1234-5678-7abc-8def-1234567890ab',
   center: '019b1234-5678-7abc-8def-1234567890ac',
   centerOther: '019b1234-5678-7abc-8def-1234567890b4',
+  challenge: '019b1234-5678-7abc-8def-1234567890b8',
   document: '019b1234-5678-7abc-8def-1234567890b6',
   identity: '019b1234-5678-7abc-8def-1234567890ad',
   medication: '019b1234-5678-7abc-8def-1234567890b2',
@@ -107,13 +108,74 @@ describe('HttpPatientRepository', () => {
           level: 'aal1',
           authenticated_at: '2026-07-23T00:00:00+00:00',
         },
-        capabilities: ['patient:read'],
+        capabilities: ['session:read', 'session:logout'],
       },
       meta: { request_id: IDS.request },
     });
 
     await expect(authentication).resolves.toEqual({
-      authenticated: true,
+      kind: 'authenticated',
+      session: { displayName: 'Laura Martín Pérez', initials: 'LM', runtime: 'connected' },
+    });
+  });
+
+  it('returns an opaque MFA continuation and completes it before creating the patient session', async () => {
+    const authentication = repository.authenticate({
+      email: 'paciente@example.test',
+      password: 'correct horse battery staple',
+    });
+
+    http.expectOne('/api/v1/auth/csrf').flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/v1/auth/login').flush(
+      {
+        data: {
+          challenge_id: IDS.challenge,
+          intent: 'login',
+          purpose: null,
+          methods: ['totp', 'recovery'],
+          expires_at: '2026-07-23T00:10:00+00:00',
+          attempts_remaining: 5,
+        },
+        meta: { request_id: IDS.request },
+      },
+      { status: 202, statusText: 'Accepted' },
+    );
+
+    await expect(authentication).resolves.toMatchObject({
+      kind: 'mfa-required',
+      challenge: {
+        id: IDS.challenge,
+        methods: ['totp', 'recovery'],
+        attemptsRemaining: 5,
+      },
+    });
+    http.expectNone('/api/v1/auth/session');
+
+    const verification = repository.verifyMfaChallenge({ method: 'totp', code: '123456' });
+    http.expectOne('/api/v1/auth/csrf').flush(null, { status: 204, statusText: 'No Content' });
+    const factor = http.expectOne('/api/v1/auth/mfa/challenge-verifications');
+    expect(factor.request.body).toEqual({
+      challenge_id: IDS.challenge,
+      method: 'totp',
+      code: '123456',
+    });
+    factor.flush(null, { status: 204, statusText: 'No Content' });
+    http.expectOne('/api/v1/auth/session').flush({
+      data: {
+        authenticated: true,
+        identity: { id: IDS.identity, display_name: 'Laura Martín Pérez' },
+        authentication: {
+          method: 'password+totp',
+          level: 'aal2',
+          authenticated_at: '2026-07-23T00:01:00+00:00',
+        },
+        capabilities: ['session:read', 'session:logout'],
+      },
+      meta: { request_id: IDS.request },
+    });
+
+    await expect(verification).resolves.toEqual({
+      kind: 'authenticated',
       session: { displayName: 'Laura Martín Pérez', initials: 'LM', runtime: 'connected' },
     });
   });

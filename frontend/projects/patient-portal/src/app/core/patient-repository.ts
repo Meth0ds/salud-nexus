@@ -1,6 +1,12 @@
 import { InjectionToken, type Provider } from '@angular/core';
 import { ApiClient } from 'api-client';
-import { SessionAuth } from 'auth';
+import {
+  type MfaChallengeVerification,
+  type MfaStatusView,
+  type RecoveryCodesView,
+  SessionAuth,
+  type TotpEnrollmentView,
+} from 'auth';
 
 import { HttpPatientRepository } from './http-patient-repository';
 import { InMemoryPatientRepository } from './in-memory-patient-repository';
@@ -24,6 +30,11 @@ import { PATIENT_RUNTIME_MODE } from './patient-runtime';
 
 export interface PatientRepository {
   authenticate(credentials: PatientCredentials): Promise<AuthenticationResult>;
+  verifyMfaChallenge(verification: MfaChallengeVerification): Promise<AuthenticationResult>;
+  getMfaStatus(): Promise<MfaStatusView>;
+  beginTotpEnrollment(): Promise<TotpEnrollmentView>;
+  discloseTotpEnrollmentQr(): Promise<string>;
+  confirmTotpEnrollment(code: string): Promise<RecoveryCodesView>;
   authorizeDocumentDownload(documentId: string): Promise<DocumentDownloadAuthorization>;
   bookAppointment(request: AppointmentBookingRequest): Promise<Appointment>;
   cancelAppointment(request: AppointmentCancellationRequest): Promise<Appointment>;

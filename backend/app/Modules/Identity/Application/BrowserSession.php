@@ -35,6 +35,16 @@ final class BrowserSession
     public const PUBLIC_ID = 'auth.session_public_id';
 
     /**
+     * Store one opaque, session-bound MFA challenge while the guard is a guest.
+     */
+    public const MFA_CHALLENGE = 'auth.mfa_challenge';
+
+    /**
+     * Store the operation scope authorized by the latest AAL2 proof.
+     */
+    public const ASSURANCE_SCOPE = 'auth.assurance_scope';
+
+    /**
      * Prevent construction of this session key namespace.
      */
     private function __construct() {}

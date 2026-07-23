@@ -26,6 +26,10 @@
         {{ sessionStore.session()?.initials ?? 'DE' }}
       </button>
       <mat-menu #accountMenu="matMenu">
+        <a mat-menu-item routerLink="/seguridad">
+          <sn-icon name="shield_lock" [size]="19" />
+          <span>Seguridad de la cuenta</span>
+        </a>
         <button mat-menu-item type="button" (click)="signOut()">
           <sn-icon name="logout" [size]="19" />
           <span>Cerrar sesión</span>

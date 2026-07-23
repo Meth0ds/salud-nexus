@@ -7,6 +7,7 @@ return [
         'login_account_ip_per_minute' => (int) env('AUTH_LOGIN_ACCOUNT_IP_PER_MINUTE', 5),
         'login_ip_per_minute' => (int) env('AUTH_LOGIN_IP_PER_MINUTE', 20),
         'mfa_per_minute' => (int) env('AUTH_MFA_PER_MINUTE', 10),
+        'mfa_challenge_per_minute' => (int) env('AUTH_MFA_CHALLENGE_PER_MINUTE', 10),
     ],
 
     'mfa' => [

@@ -12,7 +12,7 @@ describe('InMemoryPatientRepository', () => {
     });
 
     expect(result).toEqual({
-      authenticated: false,
+      kind: 'rejected',
       message: 'No hemos podido verificar los datos de acceso.',
     });
   });
@@ -25,11 +25,48 @@ describe('InMemoryPatientRepository', () => {
       password: 'NEXUS-2026',
     });
 
-    expect(result.authenticated).toBe(true);
-    if (result.authenticated) {
+    expect(result.kind).toBe('authenticated');
+    if (result.kind === 'authenticated') {
       expect(result.session.displayName).toBe('Laura Martín');
       expect(result.session.runtime).toBe('demo');
     }
+  });
+
+  it('reproduces TOTP enrollment without retaining the synthetic recovery codes', async () => {
+    const repository = new InMemoryPatientRepository();
+
+    await expect(repository.getMfaStatus()).resolves.toMatchObject({
+      enabled: false,
+      method: null,
+      status: null,
+    });
+    await expect(repository.beginTotpEnrollment()).resolves.toMatchObject({
+      method: 'totp',
+      status: 'pending',
+      qrDisclosureRequired: true,
+    });
+    await expect(repository.discloseTotpEnrollmentQr()).resolves.toContain('<svg');
+    await expect(repository.discloseTotpEnrollmentQr()).rejects.toThrow('one use');
+    await expect(repository.confirmTotpEnrollment('000000')).rejects.toThrow(
+      'synthetic authentication code',
+    );
+
+    const confirmation = await repository.confirmTotpEnrollment('123456');
+    expect(confirmation.codes).toHaveLength(10);
+    expect(JSON.stringify(repository)).not.toContain(confirmation.codes[0]);
+    await expect(repository.getMfaStatus()).resolves.toMatchObject({
+      enabled: true,
+      method: 'totp',
+      status: 'active',
+      recoveryCodesRemaining: 10,
+    });
+
+    repository.clearSensitiveRuntimeState();
+    await expect(repository.getMfaStatus()).resolves.toMatchObject({
+      enabled: false,
+      method: null,
+      status: null,
+    });
   });
 
   it('books only once when the same client request is submitted twice', async () => {

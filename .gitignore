@@ -33,5 +33,4 @@ Thumbs.db
 .freebuff/desktop.db-wal
 
 # Binary tools (ffmpeg)
-tools/ffmpeg-8.1.2-essentials_build/
-tools/ffmpeg-release-essentials.zip
+tools/

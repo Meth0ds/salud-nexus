@@ -53,14 +53,20 @@ export class Login {
       this.submitting.set(true);
       try {
         const result = await this.repository.authenticate(this.credentials());
-        if (!result.authenticated) {
+        if (result.kind === 'rejected') {
           this.loginError.set(result.message);
+          return;
+        }
+
+        if (result.kind === 'mfa-required') {
+          await this.router.navigateByUrl('/verificar-segundo-factor');
           return;
         }
 
         this.sessionStore.open(result.session);
         await this.router.navigateByUrl('/inicio', { replaceUrl: true });
       } finally {
+        this.credentials.update((credentials) => ({ ...credentials, password: '' }));
         this.submitting.set(false);
       }
     });

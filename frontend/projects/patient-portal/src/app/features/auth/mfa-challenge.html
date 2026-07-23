@@ -1,0 +1,159 @@
+<main class="mfa-page" aria-labelledby="mfa-title">
+  <header class="mfa-header">
+    <div class="brand" aria-label="Salud Nexus">
+      <span class="brand-mark" aria-hidden="true"><span></span><span></span></span>
+      <span><strong>salud</strong> nexus</span>
+    </div>
+    <span class="secure-context"><sn-icon name="lock" [size]="17" /> Conexión protegida</span>
+  </header>
+
+  <div class="ceremony">
+    <ol class="trust-line" aria-label="Progreso del acceso">
+      <li class="is-complete">
+        <span><sn-icon name="check" [size]="16" /></span>
+        <p><strong>Contraseña verificada</strong><small>La identidad coincide.</small></p>
+      </li>
+      <li class="is-current" aria-current="step">
+        <span>2</span>
+        <p><strong>Segundo factor</strong><small>Comprueba tu dispositivo.</small></p>
+      </li>
+      <li>
+        <span>3</span>
+        <p><strong>Sesión protegida</strong><small>Se abrirá con nivel AAL2.</small></p>
+      </li>
+    </ol>
+
+    <article class="verification-card" [attr.aria-busy]="submitting()">
+      <div class="card-status">
+        <span><sn-icon name="verified_user" [size]="18" /> Paso final</span>
+        <small [class.is-expired]="expired()">
+          @if (expired()) {
+            Reto caducado
+          } @else {
+            Caduca en {{ countdownLabel() }}
+          }
+        </small>
+      </div>
+
+      @if (challenge(); as activeChallenge) {
+        @if (!expired()) {
+          @if (method() === 'totp') {
+            <p class="eyebrow">Aplicación de autenticación</p>
+            <h1 id="mfa-title">Confirma que eres tú</h1>
+            <p class="intro">
+              Escribe el código de seis dígitos de tu aplicación. No lo compartas con nadie.
+            </p>
+          } @else {
+            <p class="eyebrow">Método alternativo</p>
+            <h1 id="mfa-title">Usa un código de recuperación</h1>
+            <p class="intro">
+              Cada código funciona una sola vez. Al entrar podrás revisar los que quedan.
+            </p>
+          }
+
+          <form novalidate (submit)="verify(); $event.preventDefault()">
+            <mat-form-field appearance="outline">
+              <mat-label>
+                {{ method() === 'totp' ? 'Código temporal' : 'Código de recuperación' }}
+              </mat-label>
+              <input
+                #codeInput
+                matInput
+                id="mfa-code"
+                type="text"
+                [inputMode]="method() === 'totp' ? 'numeric' : 'text'"
+                [attr.autocomplete]="method() === 'totp' ? 'one-time-code' : 'off'"
+                [attr.spellcheck]="false"
+                [formField]="verificationForm.code"
+              />
+              <mat-hint>
+                {{
+                  method() === 'totp'
+                    ? 'Puedes pegar los seis dígitos de una vez.'
+                    : 'Los guiones y las mayúsculas no importan.'
+                }}
+              </mat-hint>
+              @if (
+                verificationForm.code().touched() && verificationForm.code().errors()[0];
+                as error
+              ) {
+                <mat-error>{{ error.message }}</mat-error>
+              }
+            </mat-form-field>
+
+            @if (verificationError()) {
+              <div class="verification-error" role="alert">
+                <sn-icon name="error" [size]="20" />
+                <span>{{ verificationError() }}</span>
+              </div>
+            }
+
+            <button matButton="filled" type="submit" [disabled]="submitting()">
+              @if (submitting()) {
+                <mat-spinner [diameter]="18" aria-hidden="true" />
+              }
+              {{ submitLabel() }}
+              @if (!submitting()) {
+                <sn-icon name="arrow_forward" [size]="18" />
+              }
+            </button>
+          </form>
+
+          @if (method() === 'totp' && hasRecoveryMethod()) {
+            <button
+              matButton="text"
+              class="method-action"
+              data-testid="use-recovery"
+              type="button"
+              (click)="useMethod('recovery')"
+            >
+              Usar un código de recuperación
+            </button>
+          } @else if (method() === 'recovery' && activeChallenge.methods.includes('totp')) {
+            <button
+              matButton="text"
+              class="method-action"
+              type="button"
+              (click)="useMethod('totp')"
+            >
+              Volver al código temporal
+            </button>
+          }
+        } @else {
+          <div class="expired-state" role="alert">
+            <span><sn-icon name="schedule" [size]="26" /></span>
+            <h1 id="mfa-title">El tiempo de verificación ha terminado</h1>
+            <p>Por seguridad, solicita un reto nuevo volviendo a introducir tus credenciales.</p>
+            <button matButton="filled" type="button" (click)="restartLogin()">
+              Volver a iniciar sesión
+            </button>
+          </div>
+        }
+      } @else {
+        <div class="expired-state" role="alert">
+          <span><sn-icon name="shield_lock" [size]="26" /></span>
+          <h1 id="mfa-title">Necesitas iniciar sesión de nuevo</h1>
+          <p>No hay un reto de segundo factor activo en esta pestaña.</p>
+          <button matButton="filled" type="button" (click)="restartLogin()">Ir al acceso</button>
+        </div>
+      }
+    </article>
+
+    <aside class="assurance-note" aria-label="Controles de seguridad del reto">
+      <span class="assurance-seal"><sn-icon name="shield_lock" [size]="25" /></span>
+      <p class="eyebrow">Protección activa</p>
+      <h2>El código solo se usa para esta comprobación.</h2>
+      <ul>
+        <li><sn-icon name="check_circle" [size]="17" /> Reto ligado a esta sesión.</li>
+        <li>
+          <sn-icon name="check_circle" [size]="17" />
+          Máximo de {{ challenge()?.attemptsRemaining ?? 5 }} intentos.
+        </li>
+        <li><sn-icon name="check_circle" [size]="17" /> Sin datos en el navegador.</li>
+      </ul>
+      <p class="phishing-note">
+        Tu centro nunca te pedirá este código por teléfono, correo o mensajería.
+      </p>
+    </aside>
+  </div>
+</main>

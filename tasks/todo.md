@@ -107,19 +107,19 @@ Para cada TODO funcional:
   - Aceptación: ventana ±1, paso de 30 s, consumo atómico, entropía suficiente y hash Argon2id.
   - Verificación: vector RFC 6238, reloj inyectable, replay y bloqueo transaccional; la carrera real sobre PostgreSQL se repite en MFA-016.
   - Dependencias: MFA-005.
-- [ ] MFA-007 — Implementar alta, QR de un uso y confirmación.
+- [x] MFA-007 — Implementar alta, QR de un uso y confirmación.
   - Aceptación: sesión reciente, ownership, expiración, `no-store`, activación y códigos entregados una vez.
   - Verificación: matriz API/CSRF, segundo acceso QR, secreto ausente de logs/problemas.
   - Dependencias: MFA-006.
-- [ ] MFA-008 — Separar contraseña válida de sesión autenticada cuando exista MFA.
+- [x] MFA-008 — Separar contraseña válida de sesión autenticada cuando exista MFA.
   - Aceptación: cuenta con MFA recibe un reto ligado a sesión y permanece guest; cuenta sin MFA conserva AAL1.
   - Verificación: fixation, enumeración, cuenta suspendida y mezcla de sesión.
   - Dependencias: MFA-006.
-- [ ] MFA-009 — Implementar verificación TOTP/recovery y sesión AAL2.
+- [x] MFA-009 — Implementar verificación TOTP/recovery y sesión AAL2.
   - Aceptación: reto válido rota sesión; replay, expiración, intento agotado y código usado son denegados.
   - Verificación: tests API positivos/negativos, carrera y evento de seguridad minimizado.
   - Dependencias: MFA-008.
-- [ ] MFA-010 — Implementar step-up y middleware de nivel/frescura.
+- [x] MFA-010 — Implementar step-up y middleware de nivel/frescura.
   - Aceptación: finalidad allowlist, elevación AAL2 temporal y deny-by-default.
   - Verificación: unitarias de middleware y matriz API por nivel/caducidad.
   - Dependencias: MFA-009, IAM-012.

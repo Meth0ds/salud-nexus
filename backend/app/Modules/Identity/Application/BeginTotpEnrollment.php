@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application;
 
+use App\Modules\Identity\Domain\IdentitySecurityEventType;
 use App\Modules\Identity\Domain\MfaMethodStatus;
 use App\Modules\Identity\Domain\MfaMethodType;
+use App\Modules\Identity\Domain\SecurityEventOutcome;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityAccount;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityMfaMethod;
 use Carbon\CarbonImmutable;
@@ -25,20 +27,27 @@ final readonly class BeginTotpEnrollment
     public function __construct(
         private TotpAuthenticator $authenticator,
         private ClockInterface $clock,
+        private IdentitySecurityEventWriter $securityEvents,
     ) {}
 
     /**
      * Start a new pending TOTP enrollment for the authenticated identity.
      */
-    public function handle(IdentityAccount $account): IdentityMfaMethod
-    {
+    public function handle(
+        IdentityAccount $account,
+        string $requestPublicId,
+    ): IdentityMfaMethod {
         $ttlMinutes = (int) config('identity.mfa.enrollment_ttl_minutes');
 
         if ($ttlMinutes < 2 || $ttlMinutes > 15) {
             throw new LogicException('The MFA enrollment lifetime is invalid.');
         }
 
-        return DB::transaction(function () use ($account, $ttlMinutes): IdentityMfaMethod {
+        return DB::transaction(function () use (
+            $account,
+            $ttlMinutes,
+            $requestPublicId,
+        ): IdentityMfaMethod {
             $method = IdentityMfaMethod::query()
                 ->where('identity_account_id', $account->id)
                 ->where('type', MfaMethodType::Totp->value)
@@ -62,6 +71,17 @@ final readonly class BeginTotpEnrollment
             $method->disabled_at = null;
             $method->save();
             $method->recoveryCodes()->delete();
+            $this->securityEvents->write(
+                account: $account,
+                type: IdentitySecurityEventType::MfaEnrollmentStarted,
+                outcome: SecurityEventOutcome::Succeeded,
+                authenticationLevel: 1,
+                requestPublicId: $requestPublicId,
+                metadata: [
+                    'factor' => 'totp',
+                    'intent' => 'enrollment',
+                ],
+            );
 
             return $method;
         }, 3);

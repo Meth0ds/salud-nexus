@@ -23,7 +23,13 @@ import {
   type RuntimeSchemaResult,
   type ApiValidatedResponse,
 } from 'api-client';
-import { SessionAuth } from 'auth';
+import {
+  type MfaChallengeVerification,
+  type MfaStatusView,
+  type RecoveryCodesView,
+  SessionAuth,
+  type TotpEnrollmentView,
+} from 'auth';
 import { firstValueFrom } from 'rxjs';
 import { parsePublicId } from 'shared';
 
@@ -47,6 +53,7 @@ import type {
   MedicationRenewalResult,
   PatientCredentials,
   PatientDocument,
+  PatientSession,
 } from './patient.models';
 import type { PatientRepository } from './patient-repository';
 
@@ -126,21 +133,50 @@ export class HttpPatientRepository implements PatientRepository {
 
   async authenticate(credentials: PatientCredentials): Promise<AuthenticationResult> {
     try {
-      const session = await firstValueFrom(
+      const outcome = await firstValueFrom(
         this.sessionAuth.login({ email: credentials.email, password: credentials.password }),
       );
 
+      if (outcome.kind === 'mfa-required') {
+        return outcome;
+      }
+
       return {
-        authenticated: true,
-        session: {
-          displayName: session.identity.displayName,
-          initials: initialsFor(session.identity.displayName),
-          runtime: 'connected',
-        },
+        kind: 'authenticated',
+        session: toPatientSession(outcome.session.identity.displayName),
       };
     } catch {
-      return { authenticated: false, message: GENERIC_AUTHENTICATION_ERROR };
+      return { kind: 'rejected', message: GENERIC_AUTHENTICATION_ERROR };
     }
+  }
+
+  async verifyMfaChallenge(verification: MfaChallengeVerification): Promise<AuthenticationResult> {
+    try {
+      const session = await firstValueFrom(this.sessionAuth.verifyMfaChallenge(verification));
+
+      return {
+        kind: 'authenticated',
+        session: toPatientSession(session.identity.displayName),
+      };
+    } catch {
+      return { kind: 'rejected', message: GENERIC_AUTHENTICATION_ERROR };
+    }
+  }
+
+  getMfaStatus(): Promise<MfaStatusView> {
+    return firstValueFrom(this.sessionAuth.getMfaStatus());
+  }
+
+  beginTotpEnrollment(): Promise<TotpEnrollmentView> {
+    return firstValueFrom(this.sessionAuth.beginTotpEnrollment());
+  }
+
+  discloseTotpEnrollmentQr(): Promise<string> {
+    return firstValueFrom(this.sessionAuth.discloseTotpEnrollmentQr());
+  }
+
+  confirmTotpEnrollment(code: string): Promise<RecoveryCodesView> {
+    return firstValueFrom(this.sessionAuth.confirmTotpEnrollment(code));
   }
 
   async authorizeDocumentDownload(documentId: string): Promise<DocumentDownloadAuthorization> {
@@ -994,6 +1030,14 @@ function initialsFor(displayName: string): string {
     .slice(0, 2)
     .map((part) => part.charAt(0).toLocaleUpperCase('es-ES'))
     .join('');
+}
+
+function toPatientSession(displayName: string): PatientSession {
+  return {
+    displayName,
+    initials: initialsFor(displayName),
+    runtime: 'connected',
+  };
 }
 
 function formatDate(value: string, timeZone: string): string {

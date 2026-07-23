@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Modules\Identity\Http\Controllers\BeginMfaStepUpController;
 use App\Modules\Identity\Http\Controllers\BeginTotpEnrollmentController;
 use App\Modules\Identity\Http\Controllers\ConfirmTotpEnrollmentController;
 use App\Modules\Identity\Http\Controllers\CurrentSessionController;
@@ -10,6 +11,7 @@ use App\Modules\Identity\Http\Controllers\IssueCsrfCookieController;
 use App\Modules\Identity\Http\Controllers\LogoutController;
 use App\Modules\Identity\Http\Controllers\MfaStatusController;
 use App\Modules\Identity\Http\Controllers\PasswordLoginController;
+use App\Modules\Identity\Http\Controllers\VerifyMfaChallengeController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('web')
@@ -24,10 +26,18 @@ Route::middleware('web')
             ->middleware('throttle:auth.login')
             ->name('login');
 
+        Route::post('/mfa/challenge-verifications', VerifyMfaChallengeController::class)
+            ->middleware('throttle:auth.mfa.challenge')
+            ->block(5, 10)
+            ->name('mfa.challenge-verifications.store');
+
         Route::middleware(['auth:sanctum', 'throttle:api'])->group(function (): void {
             Route::get('/session', CurrentSessionController::class)->name('session');
             Route::post('/logout', LogoutController::class)->name('logout');
             Route::get('/mfa', MfaStatusController::class)->name('mfa.status');
+            Route::post('/mfa/step-up-challenges', BeginMfaStepUpController::class)
+                ->middleware('throttle:auth.mfa')
+                ->name('mfa.step-up-challenges.store');
             Route::post('/mfa/totp/enrollments', BeginTotpEnrollmentController::class)
                 ->middleware('throttle:auth.mfa')
                 ->name('mfa.totp.enrollments.store');

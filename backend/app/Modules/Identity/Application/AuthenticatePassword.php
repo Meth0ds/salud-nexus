@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\Modules\Identity\Application;
 
+use App\Http\Middleware\AssignRequestId;
 use App\Modules\Identity\Domain\IdentityAccountStatus;
+use App\Modules\Identity\Domain\IdentitySecurityEventType;
+use App\Modules\Identity\Domain\MfaMethodStatus;
+use App\Modules\Identity\Domain\MfaMethodType;
+use App\Modules\Identity\Domain\SecurityEventOutcome;
 use App\Modules\Identity\Infrastructure\Persistence\IdentityAccount;
+use App\Modules\Identity\Infrastructure\Persistence\IdentityMfaMethod;
 use App\Shared\Domain\Identity\PublicIdGenerator;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Auth\StatefulGuard;
+use Illuminate\Contracts\Hashing\Hasher;
 use Illuminate\Http\Request;
 use LogicException;
 use SensitiveParameter;
@@ -23,8 +30,11 @@ final readonly class AuthenticatePassword
 {
     public function __construct(
         private AuthFactory $auth,
+        private Hasher $hasher,
         private ClockInterface $clock,
         private PublicIdGenerator $publicIds,
+        private MfaChallengeStore $challenges,
+        private IdentitySecurityEventWriter $securityEvents,
     ) {}
 
     /**
@@ -36,7 +46,7 @@ final readonly class AuthenticatePassword
         Request $request,
         string $normalizedEmail,
         #[SensitiveParameter] string $password,
-    ): IdentityAccount {
+    ): PasswordAuthenticationOutcome {
         $guard = $this->auth->guard('web');
 
         if (! $guard instanceof StatefulGuard) {
@@ -47,27 +57,63 @@ final readonly class AuthenticatePassword
             throw new ConflictHttpException;
         }
 
-        $authenticated = $guard->attempt([
+        $credentials = [
             'email' => $normalizedEmail,
             'password' => $password,
             'status' => IdentityAccountStatus::Active->value,
-        ], false);
+        ];
 
-        if (! $authenticated) {
+        if (! $guard->validate($credentials)) {
             throw new AuthenticationException(guards: ['web']);
         }
 
-        $account = $guard->user();
+        $account = IdentityAccount::query()
+            ->where('email', $normalizedEmail)
+            ->where('status', IdentityAccountStatus::Active->value)
+            ->first();
 
         if (! $account instanceof IdentityAccount) {
-            $guard->logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            throw new LogicException('The web guard returned an unsupported identity type.');
+            throw new LogicException('Validated credentials must resolve an active identity account.');
         }
 
-        $request->session()->regenerate();
+        if ($this->hasher->needsRehash($account->password)) {
+            $account->password = $password;
+            $account->save();
+        }
+
+        $mfaMethod = IdentityMfaMethod::query()
+            ->where('identity_account_id', $account->id)
+            ->where('type', MfaMethodType::Totp->value)
+            ->where('status', MfaMethodStatus::Active->value)
+            ->first();
+
+        if ($mfaMethod instanceof IdentityMfaMethod) {
+            $request->session()->regenerate(true);
+            $request->session()->forget([
+                BrowserSession::METHOD,
+                BrowserSession::LEVEL,
+                BrowserSession::AUTHENTICATED_AT,
+                BrowserSession::PASSWORD_AUTHENTICATED_AT,
+                BrowserSession::PUBLIC_ID,
+                BrowserSession::ASSURANCE_SCOPE,
+            ]);
+            $challenge = $this->challenges->issueLogin($request, $account, $mfaMethod);
+            $this->securityEvents->write(
+                account: $account,
+                type: IdentitySecurityEventType::MfaChallengeIssued,
+                outcome: SecurityEventOutcome::Succeeded,
+                authenticationLevel: 1,
+                requestPublicId: $this->requestPublicId($request),
+                metadata: [
+                    'attempts_remaining' => $challenge->attemptsRemaining,
+                    'intent' => $challenge->intent->value,
+                ],
+            );
+
+            return new PasswordAuthenticationOutcome($challenge);
+        }
+
+        $guard->login($account, false);
         $authenticatedAt = $this->clock->now()->format(DATE_ATOM);
         $request->session()->put([
             BrowserSession::METHOD => 'password',
@@ -77,6 +123,20 @@ final readonly class AuthenticatePassword
             BrowserSession::PUBLIC_ID => $this->publicIds->generate()->toString(),
         ]);
 
-        return $account;
+        return new PasswordAuthenticationOutcome(null);
+    }
+
+    /**
+     * Return the request identifier assigned before authentication begins.
+     */
+    private function requestPublicId(Request $request): string
+    {
+        $requestPublicId = $request->attributes->get(AssignRequestId::ATTRIBUTE);
+
+        if (! is_string($requestPublicId)) {
+            throw new LogicException('Password authentication requires a request identifier.');
+        }
+
+        return $requestPublicId;
     }
 }

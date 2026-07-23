@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { RouterLink } from '@angular/router';
 import { SnIcon, SnStatusChip } from 'design-system';
 
 import type { AccessEvent, ViewState } from '../../core/patient.models';
@@ -10,7 +11,7 @@ import { DemoStatePanel } from '../../shared/demo-state-panel/demo-state-panel';
 
 @Component({
   selector: 'sn-patient-privacy',
-  imports: [DemoStatePanel, MatButtonModule, SnIcon, SnStatusChip],
+  imports: [DemoStatePanel, MatButtonModule, RouterLink, SnIcon, SnStatusChip],
   templateUrl: './privacy.html',
   styleUrl: './privacy.scss',
 })

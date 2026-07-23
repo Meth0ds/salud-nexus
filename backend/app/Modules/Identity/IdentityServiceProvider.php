@@ -55,5 +55,17 @@ final class IdentityServiceProvider extends ServiceProvider
                 (int) config('identity.rate_limits.mfa_per_minute'),
             ))->by('auth-mfa:'.hash('sha256', $identity.'|'.$ipAddress));
         });
+
+        RateLimiter::for('auth.mfa.challenge', static function (Request $request): Limit {
+            $sessionId = $request->hasSession()
+                ? $request->session()->getId()
+                : 'missing-session';
+            $ipAddress = (string) ($request->ip() ?? 'unknown-address');
+
+            return Limit::perMinute(max(
+                1,
+                (int) config('identity.rate_limits.mfa_challenge_per_minute'),
+            ))->by('auth-mfa-challenge:'.hash('sha256', $sessionId.'|'.$ipAddress));
+        });
     }
 }
