@@ -12,13 +12,13 @@
 </p>
 
 <p align="center">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"></a>
   <img src="https://img.shields.io/badge/php-^8.3-777bb4.svg?logo=php" alt="PHP ^8.3">
   <img src="https://img.shields.io/badge/laravel-13.x-f9322c.svg?logo=laravel" alt="Laravel 13">
   <img src="https://img.shields.io/badge/angular-^22.0-c3002f.svg?logo=angular" alt="Angular 22">
   <img src="https://img.shields.io/badge/postgresql-18-336791.svg?logo=postgresql" alt="PostgreSQL 18">
   <img src="https://img.shields.io/badge/redis-8-dc382d.svg?logo=redis" alt="Redis 8">
-  <img src="https://img.shields.io/badge/docker-ready-2496ed.svg?logobpm=docker" alt="Docker">
+  <img src="https://img.shields.io/badge/docker-ready-2496ed.svg?logo=docker" alt="Docker">
   <img src="https://img.shields.io/badge/openapi-3.1-85ea2d.svg?logo=openapiinitiative" alt="OpenAPI 3.1">
   <img src="https://img.shields.io/badge/wcag-2.2_AA-5a67d8.svg" alt="WCAG 2.2 AA">
 </p>
